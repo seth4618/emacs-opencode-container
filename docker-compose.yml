@@ -1,0 +1,80 @@
+services:
+  dev:
+    build:
+      context: .
+      args:
+        USERNAME: ${CONTAINER_USER:-dev}
+        USER_UID: ${HOST_UID:-1000}
+        USER_GID: ${HOST_GID:-1000}
+        OPENCODE_NPM_PACKAGE: ${OPENCODE_NPM_PACKAGE:-opencode-ai}
+    image: ${COMPOSE_PROJECT_NAME:-emacs-opencode}-dev:latest
+    container_name: ${COMPOSE_PROJECT_NAME:-emacs-opencode}-dev
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    working_dir: /workspace
+    tty: true
+    stdin_open: true
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: ${PIDS_LIMIT:-512}
+    cpus: ${CPU_LIMIT:-4}
+    mem_limit: ${MEM_LIMIT:-8g}
+    environment:
+      TZ: ${TZ:-UTC}
+      WAYLAND_DISPLAY: ${WAYLAND_DISPLAY:-wayland-0}
+      XDG_RUNTIME_DIR: /tmp/runtime-dev
+      OPENCODE_HOME: /opencode-state
+      OPENCODE_CONFIG_DIR: /opencode-state
+      OPENCODE_AUTH_DIR: /opencode-state
+      NPM_CONFIG_CACHE: /cache/npm
+      PNPM_HOME: /cache/pnpm
+      PNPM_STORE_PATH: /cache/pnpm-store
+      PIP_CACHE_DIR: /cache/pip
+    volumes:
+      # Host repository mounted read-only to prevent accidental writes.
+      - type: bind
+        source: ${HOST_REPO_PATH}
+        target: /src-host
+        read_only: true
+      # Optional host-mounted secrets directory (read-only).
+      # Put opencode.env here if you want env vars sourced by scripts/run-opencode.sh.
+      - type: bind
+        source: ${HOST_SECRETS_DIR}
+        target: /run/secrets
+        read_only: true
+      # Wayland socket mount for GUI Emacs on host display.
+      - type: bind
+        source: ${WAYLAND_SOCKET_PATH}
+        target: /tmp/runtime-dev/${WAYLAND_DISPLAY:-wayland-0}
+      # Persistent writable workspace clone.
+      - workspace_data:/workspace
+      # Persistent Emacs package/cache/state.
+      - emacs_state:/home/${CONTAINER_USER:-dev}/.emacs.d
+      # Host-shared OpenCode state/auth (reuses one global auth/connect for all containers).
+      - type: bind
+        source: ${HOST_OPENCODE_DIR}
+        target: /opencode-state
+      # Language/package caches.
+      - npm_cache:/cache/npm
+      - pnpm_store:/cache/pnpm-store
+      - pip_cache:/cache/pip
+      - pnpm_home:/cache/pnpm
+      # Optional local Emacs bootstrap config from this repo.
+      - type: bind
+        source: ${HOST_REPO_PATH}/emacs.d
+        target: /opt/emacs-base
+        read_only: true
+
+volumes:
+  workspace_data:
+    name: ${WORKSPACE_VOLUME_NAME:-emacs_opencode_workspace}
+  emacs_state:
+    name: ${EMACS_STATE_VOLUME_NAME:-emacs_opencode_emacs_state}
+  npm_cache:
+    name: ${NPM_CACHE_VOLUME_NAME:-emacs_opencode_npm_cache}
+  pnpm_store:
+    name: ${PNPM_STORE_VOLUME_NAME:-emacs_opencode_pnpm_store}
+  pip_cache:
+    name: ${PIP_CACHE_VOLUME_NAME:-emacs_opencode_pip_cache}
+  pnpm_home:
+    name: ${PNPM_HOME_VOLUME_NAME:-emacs_opencode_pnpm_home}
