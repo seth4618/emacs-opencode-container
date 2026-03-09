@@ -14,9 +14,8 @@ exec_dev bash -lc '
     exit 1
   fi
 
-  if [[ ! -f "${HOME}/.emacs.d/init.el" && -d /opt/emacs-base ]]; then
-    mkdir -p "${HOME}/.emacs.d"
-    cp -an /opt/emacs-base/. "${HOME}/.emacs.d/"
+  if [[ -x /workspace/scripts/sync-emacs-base.sh ]]; then
+    /workspace/scripts/sync-emacs-base.sh
   fi
 
   cd /workspace

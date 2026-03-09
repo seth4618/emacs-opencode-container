@@ -44,7 +44,7 @@
   :commands (lsp lsp-deferred)
   :custom
   ;; Avoid repeated "no automatic installation" prompts for optional Python servers.
-  (lsp-disabled-clients '(semgrep-ls ruff ty-ls pylsp pyls))
+  (lsp-disabled-clients '(semgrep-ls ruff ruff-ls ty-ls pylsp pyls))
   (lsp-keymap-prefix "C-c l")
   (lsp-enable-snippet t)
   (lsp-headerline-breadcrumb-enable nil)
