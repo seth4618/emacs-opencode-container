@@ -127,6 +127,67 @@ Sample files are included in `sample/` for quick LSP checks.
 
 If `opencode` is missing, set `OPENCODE_NPM_PACKAGE` in `.env` and rebuild.
 
+## Step-by-step: test OpenCode with the sample files
+
+Use this flow to sanity-check OpenCode in your containerized setup.
+
+### 1) Start/refresh the environment (**host terminal**)
+
+```bash
+docker compose up -d --build
+scripts/init-workspace.sh refresh
+```
+
+- `up -d --build` ensures image/tooling (including OpenCode package) is current.
+- `init-workspace.sh refresh` pulls latest host repo files into `/workspace` while preserving container git metadata.
+
+### 2) Start terminal Emacs (**host terminal**, launches Emacs in container)
+
+```bash
+scripts/start-terminal-emacs.sh
+```
+
+- This runs `emacs -nw` inside the container at `/workspace`.
+- Open sample files from Emacs (for example under `sample/`) and make a tiny test edit.
+
+### 3) Launch OpenCode (**recommended: second host terminal**)
+
+```bash
+scripts/run-opencode.sh
+```
+
+- Yes: launch from a host terminal window. The script enters the running container and executes `opencode` in `/workspace`.
+- If you prefer, you can launch from inside an existing container shell (`scripts/enter-shell.sh`) and run `opencode` there; behavior is equivalent.
+
+### 4) Try a sample OpenCode workflow
+
+From OpenCode, prompt against files in `/workspace/sample` (or your own files) and ask for a small deterministic change, then verify in Emacs.
+
+Suggested quick checks:
+
+- Ask for a minimal refactor in one sample file.
+- Ask OpenCode to explain the diff before applying.
+- Run `git status -sb` in `/workspace` to confirm only expected files changed.
+
+### 5) Review sync state (**host terminal**)
+
+```bash
+scripts/sync-status.sh
+```
+
+- Shows container `/workspace` git status and host checkout git status side by side.
+
+## Best practice: host repo updated, how to update container copy
+
+When you pull/rebase/update the host repo, use this repeatable sequence:
+
+1. **Host**: update your checkout normally (`git pull --rebase`, switch branch, etc.).
+2. **Host**: run `scripts/init-workspace.sh refresh` to sync host file changes into container `/workspace` while preserving `/workspace/.git`.
+3. **Host**: run `scripts/sync-status.sh` and confirm both sides look as expected.
+4. If tool versions changed (Dockerfile, package installs, OpenCode package), run `docker compose up -d --build` again.
+
+Tip: use `scripts/init-workspace.sh init` only for first-time workspace creation; use `refresh` for normal day-to-day host updates.
+
 ## Tradeoffs / limitations (intentional)
 
 - Sync strategy is intentionally simple and one-way by default.
