@@ -188,6 +188,45 @@ When you pull/rebase/update the host repo, use this repeatable sequence:
 
 Tip: use `scripts/init-workspace.sh init` only for first-time workspace creation; use `refresh` for normal day-to-day host updates.
 
+
+## Handling synced host changes cleanly
+
+When you run `scripts/init-workspace.sh refresh`, `/workspace` is intentionally updated to match host files, so git may show unstaged changes in the container copy. This does **not** rewrite host commit history by itself.
+
+Recommended flow:
+
+1. Inspect what changed: `git status -sb` and `git diff`.
+2. If the changes are desired in-container, commit them in `/workspace` as normal.
+3. If they are only local/transient, discard them in `/workspace` with `git restore --worktree -- .` (or `git reset --hard HEAD` if you also want to drop staged edits).
+4. Keep untracked dependency trees out of status by ignoring common local dirs (for example `sample/*/node_modules/`, included in `.gitignore`).
+
+Use `scripts/export-to-host.sh` only when you explicitly want to copy container working tree changes back to the host checkout.
+
+
+
+## Troubleshooting: should I delete the container and start over?
+
+Usually **no**. In this setup, deleting/recreating the container is often enough; you only need to remove volumes for specific state problems.
+
+Recommended escalation path:
+
+1. Recreate just the container image/runtime:
+   - `docker compose down`
+   - `docker compose up -d --build`
+2. Re-sync source into `/workspace`:
+   - `scripts/init-workspace.sh refresh`
+3. If Emacs still shows runtime/permission oddities, reset only Emacs state volume (this removes installed packages/customizations in container state):
+   - `docker compose down`
+   - `docker volume rm ${EMACS_STATE_VOLUME_NAME:-emacs_opencode_emacs_state}`
+   - `docker compose up -d --build`
+4. If Python LSP still does not start, verify inside container:
+   - `scripts/enter-shell.sh`
+   - `which pyright-langserver`
+
+Notes:
+- Removing the container does **not** change host git history.
+- Removing the workspace volume will discard unexported container-side edits.
+
 ## Tradeoffs / limitations (intentional)
 
 - Sync strategy is intentionally simple and one-way by default.

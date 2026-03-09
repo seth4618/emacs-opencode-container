@@ -7,7 +7,7 @@
 (unless package-archive-contents
   (package-refresh-contents))
 
-(dolist (pkg '(use-package lsp-mode magit gptel typescript-mode json-mode solidity-mode))
+(dolist (pkg '(use-package lsp-mode lsp-pyright magit gptel typescript-mode json-mode solidity-mode))
   (unless (package-installed-p pkg)
     (package-install pkg)))
 
@@ -32,6 +32,11 @@
 (use-package solidity-mode
   :mode "\\.sol\\'"
   :hook (solidity-mode . lsp-deferred))
+
+
+(use-package lsp-pyright
+  :after lsp-mode
+  :custom (lsp-pyright-langserver-command "pyright-langserver"))
 
 (use-package lsp-mode
   :commands (lsp lsp-deferred)
