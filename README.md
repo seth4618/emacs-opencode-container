@@ -249,6 +249,7 @@ What to confirm:
 - `pyright --version` prints a version (CLI package is installed).
 - Running `pyright-langserver` directly without transport flags will print a connection/stdio error; that is expected when launched manually.
 - If `*lsp-log*` still mentions optional Python servers (`pylsp`, `ruff`, etc.), fully restart Emacs after rebuild so updated `init.el` is reloaded.
+
 If Emacs still shows old behavior after rebuild, the persisted Emacs state volume may still have stale package state. Reset just Emacs state and relaunch:
 
 ```bash
