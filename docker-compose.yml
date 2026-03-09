@@ -36,7 +36,7 @@ services:
     environment:
       TZ: ${TZ:-UTC}
       WAYLAND_DISPLAY: ${WAYLAND_DISPLAY:-wayland-0}
-      XDG_RUNTIME_DIR: /tmp/runtime-dev
+      XDG_RUNTIME_DIR: /tmp
       OPENCODE_HOME: /opencode-state
       OPENCODE_CONFIG_DIR: /opencode-state
       OPENCODE_AUTH_DIR: /opencode-state
@@ -59,7 +59,7 @@ services:
       # Wayland socket mount for GUI Emacs on host display.
       - type: bind
         source: ${WAYLAND_SOCKET_PATH}
-        target: /tmp/runtime-dev/${WAYLAND_DISPLAY:-wayland-0}
+        target: /tmp/${WAYLAND_DISPLAY:-wayland-0}
       # Persistent writable workspace clone.
       - workspace_data:/workspace
       # Persistent Emacs package/cache/state.
