@@ -7,7 +7,7 @@
 (unless package-archive-contents
   (package-refresh-contents))
 
-(dolist (pkg '(use-package lsp-mode magit gptel typescript-mode json-mode solidity-mode))
+(dolist (pkg '(use-package lsp-mode lsp-pyright magit gptel typescript-mode json-mode solidity-mode))
   (unless (package-installed-p pkg)
     (package-install pkg)))
 
@@ -17,7 +17,9 @@
 
 (use-package python
   :mode ("\\.py\\'" . python-mode)
-  :hook (python-mode . lsp-deferred))
+  :hook (python-mode . (lambda ()
+                         (require 'lsp-pyright)
+                         (lsp-deferred))))
 
 (use-package typescript-mode
   :mode (("\\.ts\\'" . typescript-mode)
@@ -33,9 +35,16 @@
   :mode "\\.sol\\'"
   :hook (solidity-mode . lsp-deferred))
 
+
+(use-package lsp-pyright
+  :after lsp-mode
+  :custom (lsp-pyright-langserver-command "pyright-langserver"))
+
 (use-package lsp-mode
   :commands (lsp lsp-deferred)
   :custom
+  ;; Avoid repeated "no automatic installation" prompts for optional Python servers.
+  (lsp-disabled-clients '(semgrep-ls ruff ruff-ls ty-ls pylsp pyls))
   (lsp-keymap-prefix "C-c l")
   (lsp-enable-snippet t)
   (lsp-headerline-breadcrumb-enable nil)

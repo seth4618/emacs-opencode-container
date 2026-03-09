@@ -90,6 +90,8 @@ This repository provides a **simple, inspectable, local-only** setup for safely 
   - Validates Wayland socket then launches GUI Emacs.
 - `scripts/start-terminal-emacs.sh`
   - Runs `emacs -nw` in `/workspace`.
+- `scripts/sync-emacs-base.sh`
+  - Refreshes `~/.emacs.d/{early-init.el,init.el,local-init.d}` from `/opt/emacs-base` without touching package caches.
 - `scripts/run-opencode.sh [args...]`
   - Sources all `*.env` files under `/run/secrets` if present and runs `opencode`.
 
@@ -106,7 +108,7 @@ Base config lives in `emacs.d/`:
   - built-in `python-mode`
 - Local override hook: `emacs.d/local-init.d/*.el` loaded automatically.
 
-On first GUI launch, the base config is copied into the persistent Emacs state volume (`~/.emacs.d`) if missing.
+On each Emacs launch, `scripts/sync-emacs-base.sh` refreshes `early-init.el`, `init.el`, and `local-init.d/` from `/opt/emacs-base` into the persistent `~/.emacs.d` volume so repo config updates are applied without wiping package state.
 
 ## Language support notes
 
@@ -187,6 +189,73 @@ When you pull/rebase/update the host repo, use this repeatable sequence:
 4. If tool versions changed (Dockerfile, package installs, OpenCode package), run `docker compose up -d --build` again.
 
 Tip: use `scripts/init-workspace.sh init` only for first-time workspace creation; use `refresh` for normal day-to-day host updates.
+
+
+## Handling synced host changes cleanly
+
+When you run `scripts/init-workspace.sh refresh`, `/workspace` is intentionally updated to match host files, so git may show unstaged changes in the container copy. This does **not** rewrite host commit history by itself.
+
+Recommended flow:
+
+1. Inspect what changed: `git status -sb` and `git diff`.
+2. If the changes are desired in-container, commit them in `/workspace` as normal.
+3. If they are only local/transient, discard them in `/workspace` with `git restore --worktree -- .` (or `git reset --hard HEAD` if you also want to drop staged edits).
+4. Keep untracked dependency trees out of status by ignoring common local dirs (for example `sample/*/node_modules/`, included in `.gitignore`).
+
+Use `scripts/export-to-host.sh` only when you explicitly want to copy container working tree changes back to the host checkout.
+
+
+
+## Troubleshooting: should I delete the container and start over?
+
+Usually **no**. In this setup, deleting/recreating the container is often enough; you only need to remove volumes for specific state problems.
+
+Recommended escalation path:
+
+1. Recreate just the container image/runtime:
+   - `docker compose down`
+   - `docker compose up -d --build`
+2. Re-sync source into `/workspace`:
+   - `scripts/init-workspace.sh refresh`
+3. If Emacs still shows runtime/permission oddities, reset only Emacs state volume (this removes installed packages/customizations in container state):
+   - `docker compose down`
+   - `docker volume rm ${EMACS_STATE_VOLUME_NAME:-emacs_opencode_emacs_state}`
+   - `docker compose up -d --build`
+4. If Python LSP still does not start, verify inside container:
+   - `scripts/enter-shell.sh`
+   - `which pyright-langserver`
+
+Notes:
+- Removing the container does **not** change host git history.
+- Removing the workspace volume will discard unexported container-side edits.
+
+
+
+### Verify the container was actually rebuilt
+
+Run these from the **host**:
+
+```bash
+docker compose up -d --build --force-recreate
+docker compose ps
+docker compose exec dev bash -lc 'id; echo XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR; which pyright-langserver; pyright --version'
+```
+
+What to confirm:
+
+- `docker compose ps` shows `dev` is `Up`.
+- `XDG_RUNTIME_DIR` prints the value from `docker-compose.yml` (currently `/tmp`).
+- `which pyright-langserver` resolves to a real path.
+- `pyright --version` prints a version (CLI package is installed).
+- Running `pyright-langserver` directly without transport flags will print a connection/stdio error; that is expected when launched manually.
+- If `*lsp-log*` still mentions optional Python servers (`pylsp`, `ruff`, etc.), fully restart Emacs after rebuild so updated `init.el` is reloaded.
+If Emacs still shows old behavior after rebuild, the persisted Emacs state volume may still have stale package state. Reset just Emacs state and relaunch:
+
+```bash
+docker compose down
+docker volume rm ${EMACS_STATE_VOLUME_NAME:-emacs_opencode_emacs_state}
+docker compose up -d --build
+```
 
 ## Tradeoffs / limitations (intentional)
 

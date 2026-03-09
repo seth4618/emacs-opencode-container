@@ -4,3 +4,6 @@
 # my houseekeeping files
 .,.*
 \#scg-*
+# container-local dependencies
+sample/typescript/node_modules/
+sample/solidity/node_modules/
