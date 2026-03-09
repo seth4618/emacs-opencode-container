@@ -107,6 +107,8 @@ Base config lives in `emacs.d/`:
 
 On first GUI launch, the base config is copied into the persistent Emacs state volume (`~/.emacs.d`) if missing.
 
+If the mounted Emacs state directory is not writable, the start scripts automatically fall back to `/workspace/.emacs.d` for that session.
+
 ## Language support notes
 
 Image includes day-one tools:
