@@ -1,1 +1,6 @@
+# keep secrets safe
 .env
+
+# my houseekeeping files
+.,.*
+\#scg-*
