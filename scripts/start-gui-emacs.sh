@@ -14,10 +14,10 @@ exec_dev bash -lc '
     exit 1
   fi
 
-  if [[ -x /workspace/scripts/sync-emacs-base.sh ]]; then
-    /workspace/scripts/sync-emacs-base.sh
+  if [[ -x "${PROJECT_WORKSPACE:-/workspace}/scripts/sync-emacs-base.sh" ]]; then
+    "${PROJECT_WORKSPACE:-/workspace}/scripts/sync-emacs-base.sh"
   fi
 
-  cd /workspace
+  cd "${PROJECT_WORKSPACE:-/workspace}"
   exec emacs
 '

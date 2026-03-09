@@ -4,11 +4,11 @@ source "$(dirname "$0")/_common.sh"
 
 exec_dev bash -lc '
   set -euo pipefail
-  cd /workspace
+  cd "${PROJECT_WORKSPACE:-/workspace}"
 
-  if [[ -d /run/secrets ]]; then
+  if [[ -d /secrets ]]; then
     shopt -s nullglob
-    for secrets_file in /run/secrets/*.env; do
+    for secrets_file in /secrets/*.env; do
       set -a
       # shellcheck disable=SC1090
       source "$secrets_file"
