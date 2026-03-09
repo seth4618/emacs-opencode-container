@@ -21,6 +21,7 @@ This repository provides a **simple, inspectable, local-only** setup for safely 
 - No privileged mode.
 - No host PID namespace.
 - No host home directory mount.
+- Compose runs a one-shot `emacs-state-init` helper that fixes ownership on the `emacs_state` volume to `${HOST_UID}:${HOST_GID}` before `dev` starts.  (Did this because ~/.emacs.d was owned by root. Manual fix was to run `docker compose exec -u root dev chown -R "$(grep HOST_UID .env | cut -d= -f2):$(grep HOST_GID .env | cut -d= -f2)" /home/dev/.emacs.d`)
 
 ## Quick start
 
