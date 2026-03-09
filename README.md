@@ -227,6 +227,32 @@ Notes:
 - Removing the container does **not** change host git history.
 - Removing the workspace volume will discard unexported container-side edits.
 
+
+
+### Verify the container was actually rebuilt
+
+Run these from the **host**:
+
+```bash
+docker compose up -d --build --force-recreate
+docker compose ps
+docker compose exec dev bash -lc 'id; echo XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR; which pyright-langserver; pyright-langserver --version || true'
+```
+
+What to confirm:
+
+- `docker compose ps` shows `dev` is `Up`.
+- `XDG_RUNTIME_DIR` prints the value from `docker-compose.yml` (currently `/tmp`).
+- `which pyright-langserver` resolves to a real path.
+
+If Emacs still shows old behavior after rebuild, the persisted Emacs state volume may still have stale package state. Reset just Emacs state and relaunch:
+
+```bash
+docker compose down
+docker volume rm ${EMACS_STATE_VOLUME_NAME:-emacs_opencode_emacs_state}
+docker compose up -d --build
+```
+
 ## Tradeoffs / limitations (intentional)
 
 - Sync strategy is intentionally simple and one-way by default.

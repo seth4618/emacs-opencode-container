@@ -17,7 +17,9 @@
 
 (use-package python
   :mode ("\\.py\\'" . python-mode)
-  :hook (python-mode . lsp-deferred))
+  :hook (python-mode . (lambda ()
+                         (require 'lsp-pyright)
+                         (lsp-deferred))))
 
 (use-package typescript-mode
   :mode (("\\.ts\\'" . typescript-mode)
@@ -41,6 +43,8 @@
 (use-package lsp-mode
   :commands (lsp lsp-deferred)
   :custom
+  ;; Avoid repeated "no automatic installation" prompts for optional Python servers.
+  (lsp-disabled-clients '(semgrep-ls ruff ty-ls pylsp pyls))
   (lsp-keymap-prefix "C-c l")
   (lsp-enable-snippet t)
   (lsp-headerline-breadcrumb-enable nil)
