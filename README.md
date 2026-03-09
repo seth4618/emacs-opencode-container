@@ -21,6 +21,7 @@ This repository provides a **simple, inspectable, local-only** setup for safely 
 - No privileged mode.
 - No host PID namespace.
 - No host home directory mount.
+- Compose runs a one-shot `emacs-state-init` helper that fixes ownership on the `emacs_state` volume to `${HOST_UID}:${HOST_GID}` before `dev` starts.
 
 ## Quick start
 
