@@ -1,5 +1,6 @@
 services:
   dev:
+    hostname: ${COMPOSE_PROJECT_NAME:-inside-docker}
     build:
       context: .
       args:
