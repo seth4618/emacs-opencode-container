@@ -11,6 +11,7 @@ This setup runs Emacs/OpenCode inside Docker while using your host git checkout 
 - Uses host UID/GID for file ownership compatibility.
 - Persistent host caches for npm/pnpm/pip and `~/.cache`.
 - Container-specific Emacs profile (`~/.emacs.d-container` on host by default).
+- On container start, base Emacs config from this repo is synced into that profile automatically.
 - Secrets are configured from a text file of host paths, mounted read-only under `/secrets`.
 
 ## Multiple repos at once
@@ -55,6 +56,13 @@ scripts/enter-shell.sh
 scripts/start-terminal-emacs.sh
 # or
 scripts/start-gui-emacs.sh
+```
+
+If you changed `emacs.d/*` and want to re-sync immediately without restarting the container:
+
+```bash
+scripts/enter-shell.sh
+$ scripts/sync-emacs-base.sh
 ```
 
 7. Run OpenCode:
