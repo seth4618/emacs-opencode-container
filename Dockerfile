@@ -27,7 +27,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --gid "${USER_GID}" "${USERNAME}" \
-    && useradd --uid "${USER_UID}" --gid "${USER_GID}" --create-home --shell /bin/bash "${USERNAME}"
+    && useradd --uid "${USER_UID}" --gid "${USER_GID}" --create-home --shell /bin/bash "${USERNAME}" \
+    && chsh --shell /bin/bash "${USERNAME}"
 
 RUN npm install -g pnpm typescript typescript-language-server pyright solhint hardhat @nomicfoundation/solidity-language-server "${OPENCODE_NPM_PACKAGE}" || true
 
@@ -39,6 +40,7 @@ USER ${USERNAME}
 WORKDIR /workspace
 
 ENV HOME=/home/${USERNAME}
+ENV SHELL=/bin/bash
 ENV PATH=${HOME}/.local/bin:${PATH}
 ENTRYPOINT ["/usr/local/bin/container-entrypoint"]
 CMD ["bash", "-lc", "sleep infinity"]
