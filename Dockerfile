@@ -31,10 +31,14 @@ RUN groupadd --gid "${USER_GID}" "${USERNAME}" \
 
 RUN npm install -g pnpm typescript typescript-language-server pyright solhint hardhat @nomicfoundation/solidity-language-server "${OPENCODE_NPM_PACKAGE}" || true
 
+COPY docker/entrypoint.sh /usr/local/bin/container-entrypoint
+COPY docker/git-safe /usr/local/bin/git
+RUN chmod +x /usr/local/bin/container-entrypoint /usr/local/bin/git
+
 USER ${USERNAME}
 WORKDIR /workspace
 
 ENV HOME=/home/${USERNAME}
 ENV PATH=${HOME}/.local/bin:${PATH}
-
+ENTRYPOINT ["/usr/local/bin/container-entrypoint"]
 CMD ["bash", "-lc", "sleep infinity"]

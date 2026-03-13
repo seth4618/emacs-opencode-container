@@ -1,5 +1,6 @@
 # keep secrets safe
 .env
+secrets-paths.txt
 
 # my houseekeeping files
 .,.*

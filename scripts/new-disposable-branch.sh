@@ -7,7 +7,7 @@ ALLOW_DIRTY="${ALLOW_DIRTY:-0}"
 
 exec_dev bash -lc "
   set -euo pipefail
-  cd /workspace
+  cd \"\${PROJECT_WORKSPACE:-/workspace}\"
   if [[ '$ALLOW_DIRTY' != '1' ]] && [[ -n \"\$(git status --porcelain)\" ]]; then
     echo 'Workspace is dirty. Commit/stash or re-run with ALLOW_DIRTY=1.'
     exit 1
