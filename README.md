@@ -95,5 +95,6 @@ scripts/run-opencode.sh
 ## Notes
 
 - Linux-focused workflow.
+- Image installs `emacs-pgtk` (Wayland-capable Emacs build).
 - LSP servers and OpenCode are preinstalled in the image.
 - `git push origin` is blocked by a git wrapper at `/usr/local/bin/git`.

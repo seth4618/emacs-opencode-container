@@ -42,6 +42,7 @@ exec_dev bash -lc '
   echo "-- Emacs build info --"
   if command -v emacs >/dev/null 2>&1; then
     emacs --version | sed -n "1,2p"
+    echo "emacs binary: $(command -v emacs)"
   else
     echo "emacs not found in PATH"
   fi
