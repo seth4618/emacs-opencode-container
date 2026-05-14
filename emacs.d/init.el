@@ -37,8 +37,7 @@
 
 
 (use-package lsp-pyright
-  :after lsp-mode
-  :custom (lsp-pyright-langserver-command "pyright-langserver"))
+  :after lsp-mode)
 
 (use-package lsp-mode
   :commands (lsp lsp-deferred)
