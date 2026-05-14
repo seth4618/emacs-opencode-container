@@ -98,3 +98,51 @@ scripts/run-opencode.sh
 - Image installs `emacs-pgtk` (Wayland-capable Emacs build).
 - LSP servers and OpenCode are preinstalled in the image.
 - `git push origin` is blocked by a git wrapper at `/usr/local/bin/git`.
+
+
+## Three-tier storage model
+
+This repo now supports a three-tier storage layout:
+
+1. **Common** (shared across projects): user-managed common home with repo-linked defaults.
+2. **Project-specific**: the bind-mounted `/workspace/<repo-name>` checkout.
+3. **Instance-specific**: ephemeral per-container runtime state.
+
+### Common home template
+
+Repo-managed defaults live under `home-template/`.
+Use the bootstrap script to create a common home and symlink template files:
+
+```bash
+scripts/setup-common-home.sh
+# or
+scripts/setup-common-home.sh /absolute/path/to/common-home
+```
+
+By default it creates `~/.opencode-common-home`.
+
+The script currently links:
+
+- `.bashrc` -> `home-template/.bashrc`
+- `.emacs.d/init.el` -> `home-template/.emacs.d/init.el`
+- `.emacs.d/early-init.el` -> `home-template/.emacs.d/early-init.el`
+- `.emacs.d/repo-emacs.d` -> `emacs.d/` in this repository
+
+### Local overrides
+
+Common shell and Emacs entrypoints support local user overrides:
+
+- `~/.bashrc.local`
+- `~/.emacs.d/init.local.el`
+- `~/.emacs.d/early-init.local.el`
+
+These files are optional and are not tracked in this repo.
+
+### Migration notes
+
+Migration from previous copy/mount behavior should be done incrementally:
+
+1. Create and validate common home via `scripts/setup-common-home.sh`.
+2. Point container HOME usage to that common home.
+3. Move one path at a time from legacy copy/mount logic into common/project/instance tiers.
+4. Validate behavior after each step with `scripts/sync-status.sh` and regular Emacs startup checks.
