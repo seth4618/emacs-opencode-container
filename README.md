@@ -4,7 +4,7 @@ This setup runs Emacs/OpenCode inside Docker while using your host git checkout 
 
 ## What this mode guarantees
 
-- One container per repo (`/workspace/<repo-name>` bind-mounted read/write).
+- One container per repo, with your repo's parent directory bind-mounted at `/workspace` (so the launched repo appears at `/workspace/<repo-name>`).
 - Container can edit, commit, branch, and run tools in that repo.
 - `git push origin` is blocked inside the container.
 - Prompt in interactive container shells is `C-<dirname>$`.
@@ -27,7 +27,7 @@ cp .env.example .env
 ```
 
 2. Edit `.env` with at least:
-- `HOST_REPO_PATH` (absolute path)
+- `HOST_REPO_PATH` (absolute path to the repo you launched from)
 - `WAYLAND_SOCKET_PATH`
 - optionally `COMPOSE_PROJECT_NAME`
 
@@ -70,6 +70,14 @@ $ scripts/sync-emacs-base.sh
 ```bash
 scripts/run-opencode.sh
 ```
+
+
+### Workspace mount behavior
+
+- `scripts/dev-up.sh` derives `HOST_WORKSPACE_PATH` as `dirname(HOST_REPO_PATH)` unless you override it in `.env`.
+- That host path is bind-mounted to `/workspace` inside the container.
+- Result: files you create anywhere under that subtree persist on the host with your user permissions.
+- Files created outside mounted paths (for example arbitrary files in `/home/dev`) are container-local and are not persisted unless you add a dedicated bind mount.
 
 ## Secrets model
 
