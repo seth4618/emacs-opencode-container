@@ -12,15 +12,4 @@ else
   export PROJECT_WORKSPACE="/workspace"
 fi
 
-sync_emacs_base() {
-  local sync_script="${PROJECT_WORKSPACE:-/workspace}/scripts/sync-emacs-base.sh"
-  if [[ -x "$sync_script" ]]; then
-    "$sync_script"
-  fi
-}
-
-# Ensure ~/.emacs.d in the persistent host mount always gets the base config
-# from this repo when the container starts.
-sync_emacs_base
-
 exec "$@"

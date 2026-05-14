@@ -49,7 +49,7 @@ services:
         source: ${HOST_OPENCODE_DIR}
         target: /opencode-state
       - type: bind
-        source: ${HOST_EMACS_D_DIR}
+        source: ${HOST_REPO_PATH}/emacs.d
         target: /home/${CONTAINER_USER:-dev}/.emacs.d
       - type: bind
         source: ${HOST_NPM_CACHE_DIR}
@@ -66,7 +66,3 @@ services:
       - type: bind
         source: ${HOST_CACHE_DIR}
         target: /home/${CONTAINER_USER:-dev}/.cache
-      - type: bind
-        source: ${HOST_REPO_PATH}/emacs.d
-        target: /opt/emacs-base
-        read_only: true
