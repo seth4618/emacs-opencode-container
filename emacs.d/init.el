@@ -7,7 +7,7 @@
 (unless package-archive-contents
   (package-refresh-contents))
 
-(dolist (pkg '(use-package lsp-mode lsp-pyright magit gptel typescript-mode json-mode solidity-mode))
+(dolist (pkg '(use-package lsp-mode lsp-pyright magit gptel typescript-mode json-mode solidity-mode company yasnippet))
   (unless (package-installed-p pkg)
     (package-install pkg)))
 
@@ -15,9 +15,18 @@
   (require 'use-package))
 (setq use-package-always-ensure t)
 
+
+;; Clean up stale lsp-mode npm cache from old pyright installer attempts.
+(let ((stale-pyright-dir (expand-file-name ".cache/lsp/npm/pyright-langserver" user-emacs-directory)))
+  (when (file-directory-p stale-pyright-dir)
+    (delete-directory stale-pyright-dir t)))
+
 (use-package python
   :mode ("\\.py\\'" . python-mode)
   :hook (python-mode . (lambda ()
+                         ;; lsp-mode registers its own Flymake backend.
+                         ;; Clear built-in python backends that emit checker/init warnings.
+                         (setq-local flymake-diagnostic-functions nil)
                          (require 'lsp-pyright)
                          (lsp-deferred))))
 
@@ -37,8 +46,7 @@
 
 
 (use-package lsp-pyright
-  :after lsp-mode
-  :custom (lsp-pyright-langserver-command "pyright-langserver"))
+  :after lsp-mode)
 
 (use-package lsp-mode
   :commands (lsp lsp-deferred)
@@ -46,10 +54,19 @@
   ;; Avoid repeated "no automatic installation" prompts for optional Python servers.
   (lsp-disabled-clients '(semgrep-ls ruff ruff-ls ty-ls pylsp pyls))
   (lsp-keymap-prefix "C-c l")
-  (lsp-enable-snippet t)
+  (lsp-enable-snippet nil)
   (lsp-headerline-breadcrumb-enable nil)
   :config
   (add-to-list 'lsp-language-id-configuration '("\\.tsx\\'" . "typescriptreact")))
+
+
+(use-package company
+  :init
+  (global-company-mode 1))
+
+(use-package yasnippet
+  :init
+  (yas-global-mode 1))
 
 (use-package magit :commands magit-status)
 (use-package gptel :commands gptel)
