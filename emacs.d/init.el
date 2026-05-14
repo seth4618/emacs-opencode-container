@@ -16,6 +16,15 @@
 (setq use-package-always-ensure t)
 
 
+;; Reduce warning noise from third-party packages we do not maintain in this repo.
+;; Keep startup diagnostics useful while avoiding repeated native-comp/docstring churn.
+(setq warning-suppress-types
+      '((comp)
+        (lsp-mode)))
+(when (boundp 'native-comp-async-report-warnings-errors)
+  (setq native-comp-async-report-warnings-errors 'silent))
+
+
 ;; Clean up stale lsp-mode npm cache from old pyright installer attempts.
 (let ((stale-pyright-dir (expand-file-name ".cache/lsp/npm/pyright-langserver" user-emacs-directory)))
   (when (file-directory-p stale-pyright-dir)
