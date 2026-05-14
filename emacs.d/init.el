@@ -15,6 +15,12 @@
   (require 'use-package))
 (setq use-package-always-ensure t)
 
+
+;; Clean up stale lsp-mode npm cache from old pyright installer attempts.
+(let ((stale-pyright-dir (expand-file-name ".cache/lsp/npm/pyright-langserver" user-emacs-directory)))
+  (when (file-directory-p stale-pyright-dir)
+    (delete-directory stale-pyright-dir t)))
+
 (use-package python
   :mode ("\\.py\\'" . python-mode)
   :hook (python-mode . (lambda ()
