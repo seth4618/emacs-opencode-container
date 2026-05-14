@@ -29,7 +29,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN groupadd --gid "${USER_GID}" "${USERNAME}" \
     && useradd --uid "${USER_UID}" --gid "${USER_GID}" --create-home --shell /bin/bash "${USERNAME}"
 
-RUN npm install -g pnpm typescript typescript-language-server pyright solhint hardhat @nomicfoundation/solidity-language-server "${OPENCODE_NPM_PACKAGE}" || true
+RUN npm install -g \
+    pnpm \
+    typescript \
+    typescript-language-server \
+    pyright \
+    solhint \
+    hardhat \
+    @nomicfoundation/solidity-language-server
+
+# Keep OpenCode package configurable, but don't let an invalid package name
+# disable installation of the language servers above.
+RUN npm install -g "${OPENCODE_NPM_PACKAGE}" || true
 
 COPY docker/entrypoint.sh /usr/local/bin/container-entrypoint
 COPY docker/git-safe /usr/local/bin/git
