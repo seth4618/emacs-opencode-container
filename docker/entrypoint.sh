@@ -12,4 +12,12 @@ else
   export PROJECT_WORKSPACE="/workspace"
 fi
 
+# Wayland clients require XDG_RUNTIME_DIR to be a user-owned 0700 directory.
+# Keep this stable inside the container so `emacs` (without wrapper scripts)
+# can start as a GUI app.
+if [[ -n "${XDG_RUNTIME_DIR:-}" ]]; then
+  mkdir -p "$XDG_RUNTIME_DIR"
+  chmod 700 "$XDG_RUNTIME_DIR" || true
+fi
+
 exec "$@"

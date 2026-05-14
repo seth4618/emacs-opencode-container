@@ -8,6 +8,8 @@ exec_dev bash -lc '
     echo "WAYLAND_DISPLAY is not set in container. Check .env and docker-compose.yml"
     exit 1
   fi
+  export GDK_BACKEND="${GDK_BACKEND:-wayland}"
+
   if [[ ! -S "${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY}" ]]; then
     echo "Wayland socket ${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY} is unavailable."
     echo "Use scripts/start-terminal-emacs.sh as fallback."

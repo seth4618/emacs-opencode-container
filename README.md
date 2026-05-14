@@ -58,6 +58,8 @@ scripts/start-terminal-emacs.sh
 scripts/start-gui-emacs.sh
 ```
 
+If running `emacs` directly opens terminal mode, GUI setup likely failed. Use `scripts/start-gui-emacs.sh` and confirm `WAYLAND_DISPLAY`, `XDG_RUNTIME_DIR`, and `GDK_BACKEND=wayland` are present in the container environment. `XDG_RUNTIME_DIR` must be a user-owned `0700` directory (this setup uses `/tmp/xdg-runtime`).
+
 If you changed `emacs.d/*` and want to re-sync immediately without restarting the container:
 
 ```bash
