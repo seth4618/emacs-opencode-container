@@ -23,7 +23,8 @@ services:
     environment:
       TZ: ${TZ:-UTC}
       WAYLAND_DISPLAY: ${WAYLAND_DISPLAY:-wayland-0}
-      XDG_RUNTIME_DIR: /tmp
+      XDG_RUNTIME_DIR: /home/${CONTAINER_USER:-dev}/.xdg-runtime
+      GDK_BACKEND: wayland
       HOST_REPO_PATH: ${HOST_REPO_PATH}
       WORKSPACE_DIRNAME: ${WORKSPACE_DIRNAME}
       CONTAINER_PROMPT_PREFIX: C

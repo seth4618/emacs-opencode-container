@@ -58,6 +58,14 @@ scripts/start-terminal-emacs.sh
 scripts/start-gui-emacs.sh
 ```
 
+If running `emacs` directly opens terminal mode, GUI setup likely failed. Use `scripts/start-gui-emacs.sh` and confirm `WAYLAND_DISPLAY`, `XDG_RUNTIME_DIR`, and `GDK_BACKEND=wayland` are present in the container environment. `XDG_RUNTIME_DIR` must be a user-owned `0700` directory (this setup uses `/home/dev/.xdg-runtime`) and the Wayland socket is linked there from `/tmp/$WAYLAND_DISPLAY`.
+
+To inspect everything quickly:
+
+```bash
+scripts/check-wayland.sh
+```
+
 If you changed `emacs.d/*` and want to re-sync immediately without restarting the container:
 
 ```bash
@@ -87,5 +95,6 @@ scripts/run-opencode.sh
 ## Notes
 
 - Linux-focused workflow.
+- Image installs `emacs-pgtk` (Wayland-capable Emacs build).
 - LSP servers and OpenCode are preinstalled in the image.
 - `git push origin` is blocked by a git wrapper at `/usr/local/bin/git`.
