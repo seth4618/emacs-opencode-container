@@ -7,7 +7,7 @@
 (unless package-archive-contents
   (package-refresh-contents))
 
-(dolist (pkg '(use-package lsp-mode lsp-pyright magit gptel typescript-mode json-mode solidity-mode))
+(dolist (pkg '(use-package lsp-mode lsp-pyright magit gptel typescript-mode json-mode solidity-mode company yasnippet))
   (unless (package-installed-p pkg)
     (package-install pkg)))
 
@@ -24,6 +24,9 @@
 (use-package python
   :mode ("\\.py\\'" . python-mode)
   :hook (python-mode . (lambda ()
+                         ;; lsp-mode registers its own Flymake backend.
+                         ;; Clear built-in python backends that emit checker/init warnings.
+                         (setq-local flymake-diagnostic-functions nil)
                          (require 'lsp-pyright)
                          (lsp-deferred))))
 
@@ -51,10 +54,19 @@
   ;; Avoid repeated "no automatic installation" prompts for optional Python servers.
   (lsp-disabled-clients '(semgrep-ls ruff ruff-ls ty-ls pylsp pyls))
   (lsp-keymap-prefix "C-c l")
-  (lsp-enable-snippet t)
+  (lsp-enable-snippet nil)
   (lsp-headerline-breadcrumb-enable nil)
   :config
   (add-to-list 'lsp-language-id-configuration '("\\.tsx\\'" . "typescriptreact")))
+
+
+(use-package company
+  :init
+  (global-company-mode 1))
+
+(use-package yasnippet
+  :init
+  (yas-global-mode 1))
 
 (use-package magit :commands magit-status)
 (use-package gptel :commands gptel)
