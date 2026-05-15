@@ -136,6 +136,8 @@ Common shell and Emacs entrypoints support local user overrides:
 - `~/.emacs.d/init.local.el`
 - `~/.emacs.d/early-init.local.el`
 
+`init.local.el` is also used as Emacs `custom-file`, so Customize UI changes are written there instead of the repo-managed template files.
+
 These files are optional and are not tracked in this repo.
 
 
