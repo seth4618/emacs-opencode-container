@@ -138,6 +138,30 @@ Common shell and Emacs entrypoints support local user overrides:
 
 These files are optional and are not tracked in this repo.
 
+
+### How to test this
+
+Run the common-home test script:
+
+```bash
+scripts/test-common-home.sh
+```
+
+What it validates:
+
+- `scripts/setup-common-home.sh` runs successfully in a temporary directory
+- required symlinks are created
+- each symlink points to the expected repository-managed target
+
+Manual smoke test (optional):
+
+```bash
+TARGET="$HOME/.opencode-common-home-test"
+scripts/setup-common-home.sh "$TARGET"
+bash --rcfile "$TARGET/.bashrc" -ic 'echo shell-ok'
+emacs --batch -q -l "$TARGET/.emacs.d/early-init.el" -l "$TARGET/.emacs.d/init.el" --eval '(message "emacs-ok")'
+```
+
 ### Migration notes
 
 Migration from previous copy/mount behavior should be done incrementally:
