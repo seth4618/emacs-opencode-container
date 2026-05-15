@@ -50,8 +50,11 @@ services:
         source: ${HOST_OPENCODE_DIR}
         target: /opencode-state
       - type: bind
-        source: ${HOST_REPO_PATH}/emacs.d
+        source: ${HOST_COMMON_HOME}/.emacs.d
         target: /home/${CONTAINER_USER:-dev}/.emacs.d
+      - type: bind
+        source: ${HOST_COMMON_HOME}/.bashrc
+        target: /home/${CONTAINER_USER:-dev}/.bashrc
       - type: bind
         source: ${HOST_NPM_CACHE_DIR}
         target: /cache/npm

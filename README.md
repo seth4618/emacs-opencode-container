@@ -38,19 +38,25 @@ cp secrets-paths.txt.example secrets-paths.txt
 # then add absolute paths, one per line
 ```
 
-4. Start/update container:
+4. Initialize/refresh common home (phase 2):
+
+```bash
+scripts/setup-common-home.sh
+```
+
+5. Start/update container:
 
 ```bash
 scripts/dev-up.sh
 ```
 
-5. Open shell:
+6. Open shell:
 
 ```bash
 scripts/enter-shell.sh
 ```
 
-6. Start Emacs:
+7. Start Emacs:
 
 ```bash
 scripts/start-terminal-emacs.sh
@@ -73,7 +79,7 @@ scripts/enter-shell.sh
 $ scripts/sync-emacs-base.sh
 ```
 
-7. Run OpenCode:
+8. Run OpenCode:
 
 ```bash
 scripts/run-opencode.sh
@@ -120,6 +126,8 @@ scripts/setup-common-home.sh /absolute/path/to/common-home
 ```
 
 By default it creates `~/.opencode-common-home`.
+
+`scripts/dev-up.sh` now automatically bootstraps `${HOST_COMMON_HOME:-$HOME/.opencode-common-home}` before running `docker compose`, and the container mounts `.bashrc` and `.emacs.d` from that common home.
 
 The script currently links:
 
