@@ -1,21 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
+source "$(dirname "$0")/_common.sh"
 
-ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-RUNTIME_DIR="$ROOT_DIR/.runtime"
-SECRETS_LIST_FILE="${SECRETS_PATHS_FILE:-$ROOT_DIR/secrets-paths.txt}"
+"$(dirname "$0")/dev-init.sh" >/dev/null
 
-mkdir -p "$RUNTIME_DIR/secrets"
+load_context
+SECRETS_LIST_FILE="${SECRETS_PATHS_FILE:-$REPO_ROOT/secrets-paths.txt}"
 
-if [[ -f "$ROOT_DIR/.env" ]]; then
-  # shellcheck disable=SC1090
-  source "$ROOT_DIR/.env"
-fi
+# shellcheck disable=SC1090
+source "$PROJECT_ENV_FILE"
 
-: "${HOST_REPO_PATH:?HOST_REPO_PATH must be set in .env}"
+: "${HOST_REPO_PATH:=$REPO_ROOT}"
 HOST_UID="${HOST_UID:-$(id -u)}"
 HOST_GID="${HOST_GID:-$(id -g)}"
-WORKSPACE_DIRNAME="${WORKSPACE_DIRNAME:-$(basename "$HOST_REPO_PATH")}"
+WORKSPACE_DIRNAME="${WORKSPACE_DIRNAME:-$(basename "$HOST_REPO_PATH")}" 
 HOST_HOME="${HOST_HOME:-$HOME}"
 HOST_OPENCODE_DIR="${HOST_OPENCODE_DIR:-$HOST_HOME/.local/share/opencode}"
 HOST_CACHE_DIR="${HOST_CACHE_DIR:-$HOST_HOME/.cache}"
@@ -23,26 +21,25 @@ HOST_NPM_CACHE_DIR="${HOST_NPM_CACHE_DIR:-$HOST_HOME/.npm}"
 HOST_PNPM_STORE_DIR="${HOST_PNPM_STORE_DIR:-$HOST_HOME/.local/share/pnpm/store}"
 HOST_PNPM_HOME_DIR="${HOST_PNPM_HOME_DIR:-$HOST_HOME/.local/share/pnpm}"
 HOST_PIP_CACHE_DIR="${HOST_PIP_CACHE_DIR:-$HOST_HOME/.cache/pip}"
-HOST_SECRETS_BUNDLE_DIR="${HOST_SECRETS_BUNDLE_DIR:-$RUNTIME_DIR/secrets}"
+HOST_COMMON_HOME="${HOST_COMMON_HOME:-$HOST_HOME/.opencode-common-home}"
+HOST_SECRETS_BUNDLE_DIR="${HOST_SECRETS_BUNDLE_DIR:-$PROJECT_RUNTIME_DIR/secrets}"
 
-mkdir -p "$HOST_OPENCODE_DIR" "$HOST_CACHE_DIR" \
-  "$HOST_NPM_CACHE_DIR" "$HOST_PNPM_STORE_DIR" "$HOST_PNPM_HOME_DIR" "$HOST_PIP_CACHE_DIR"
+mkdir -p "$HOST_OPENCODE_DIR" "$HOST_CACHE_DIR" "$HOST_NPM_CACHE_DIR" "$HOST_PNPM_STORE_DIR" "$HOST_PNPM_HOME_DIR" "$HOST_PIP_CACHE_DIR" "$PROJECT_RUNTIME_DIR/secrets"
+"$TOOL_HOME/scripts/setup-common-home.sh" "$HOST_COMMON_HOME" "/workspace/$WORKSPACE_DIRNAME" >/dev/null
 
-find "$RUNTIME_DIR/secrets" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+find "$PROJECT_RUNTIME_DIR/secrets" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
 if [[ -f "$SECRETS_LIST_FILE" ]]; then
   i=0
   while IFS= read -r path; do
     [[ -z "$path" || "$path" =~ ^# ]] && continue
     if [[ -e "$path" ]]; then
-      ln -s "$path" "$RUNTIME_DIR/secrets/$(printf '%03d' "$i")-$(basename "$path")"
+      ln -s "$path" "$PROJECT_RUNTIME_DIR/secrets/$(printf '%03d' "$i")-$(basename "$path")"
       i=$((i + 1))
-    else
-      echo "Warning: secret path does not exist, skipping: $path"
     fi
   done < "$SECRETS_LIST_FILE"
 fi
 
-cat > "$RUNTIME_DIR/compose.env" <<EOF
+cat > "$PROJECT_COMPOSE_ENV_FILE" <<ENV
 HOST_UID=$HOST_UID
 HOST_GID=$HOST_GID
 HOST_REPO_PATH=$HOST_REPO_PATH
@@ -53,8 +50,8 @@ HOST_NPM_CACHE_DIR=$HOST_NPM_CACHE_DIR
 HOST_PNPM_STORE_DIR=$HOST_PNPM_STORE_DIR
 HOST_PNPM_HOME_DIR=$HOST_PNPM_HOME_DIR
 HOST_PIP_CACHE_DIR=$HOST_PIP_CACHE_DIR
+HOST_COMMON_HOME=$HOST_COMMON_HOME
 HOST_SECRETS_BUNDLE_DIR=$HOST_SECRETS_BUNDLE_DIR
-EOF
+ENV
 
-cd "$ROOT_DIR"
-docker compose --env-file .env --env-file .runtime/compose.env up -d --build "$@"
+run_compose up -d --build "$@"

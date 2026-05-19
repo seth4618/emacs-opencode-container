@@ -1,100 +1,156 @@
-# Per-repo Emacs + OpenCode Docker environment (bind-mount mode)
+# Emacs + OpenCode Dev Container (Central `dev-*` Commands)
 
-This setup runs Emacs/OpenCode inside Docker while using your host git checkout as the writable workspace.
+This repository provides a **centralized dev-container toolkit**. You install/use these scripts once, add them to your `PATH`, and run them from any supported git repository.
 
-## What this mode guarantees
+The runtime model is:
+- **Common**: shared host home fragments (`HOST_COMMON_HOME`) used across projects.
+- **Project-specific**: your git repo bind-mounted to `/workspace/<repo>`.
+- **Instance-specific**: per-repo runtime artifacts in `<repo>/.devcontainer/.runtime`.
 
-- One container per repo (`/workspace/<repo-name>` bind-mounted read/write).
-- Container can edit, commit, branch, and run tools in that repo.
-- `git push origin` is blocked inside the container.
-- Prompt in interactive container shells is `C-<dirname>$`.
-- Uses host UID/GID for file ownership compatibility.
-- Persistent host caches for npm/pnpm/pip and `~/.cache`.
-- Container-specific Emacs profile (`~/.emacs.d-container` on host by default).
-- On container start, base Emacs config from this repo is synced into that profile automatically.
-- Secrets are configured from a text file of host paths, mounted read-only under `/secrets`.
+## One-time setup (host machine)
 
-## Multiple repos at once
-
-Yes — this supports multiple concurrent containers, one per repo. Set a distinct `COMPOSE_PROJECT_NAME` per repo in each repo-local `.env`.
-
-## Quick start
-
-1. Create env file:
+1. Clone this repository (tooling home):
 
 ```bash
-cp .env.example .env
+git clone <this-repo-url> ~/src/emacs-opencode-container
 ```
 
-2. Edit `.env` with at least:
-- `HOST_REPO_PATH` (absolute path)
+2. Add scripts to your shell `PATH` (example for bash):
+
+```bash
+echo 'export PATH="$HOME/src/emacs-opencode-container/scripts:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+3. Verify commands are discoverable:
+
+```bash
+which dev-up.sh
+aaaa=$(which dev-init.sh); echo "$aaaa"
+```
+
+4. Ensure prerequisites exist on host:
+- Docker + Docker Compose plugin
+- Git
+- Wayland socket path (for GUI Emacs mode)
+
+## Per-repository setup and usage
+
+Run these commands **from inside a git repository** you want to develop in.
+
+1. Initialize repo-local container config:
+
+```bash
+dev-init.sh
+```
+
+This creates:
+- `<repo>/.devcontainer/.env`
+- `<repo>/.devcontainer/.runtime/`
+
+2. Edit `<repo>/.devcontainer/.env` and set required values:
+- `HOST_REPO_PATH` (absolute path to this repo)
 - `WAYLAND_SOCKET_PATH`
-- optionally `COMPOSE_PROJECT_NAME`
 
-3. (Optional) configure secrets list:
+Optional values:
+- `COMPOSE_PROJECT_NAME`
+- `HOST_COMMON_HOME`
+- cache/state overrides
+
+3. Start or update the container:
 
 ```bash
-cp secrets-paths.txt.example secrets-paths.txt
-# then add absolute paths, one per line
+dev-up.sh
 ```
 
-4. Start/update container:
+4. Open a shell in the container:
 
 ```bash
-scripts/dev-up.sh
+dev-shell.sh
 ```
 
-5. Open shell:
+5. Start Emacs:
 
 ```bash
-scripts/enter-shell.sh
-```
-
-6. Start Emacs:
-
-```bash
-scripts/start-terminal-emacs.sh
+dev-emacs.sh --terminal
 # or
-scripts/start-gui-emacs.sh
+dev-emacs.sh --gui
 ```
 
-If running `emacs` directly opens terminal mode, GUI setup likely failed. Use `scripts/start-gui-emacs.sh` and confirm `WAYLAND_DISPLAY`, `XDG_RUNTIME_DIR`, and `GDK_BACKEND=wayland` are present in the container environment. `XDG_RUNTIME_DIR` must be a user-owned `0700` directory (this setup uses `/home/dev/.xdg-runtime`) and the Wayland socket is linked there from `/tmp/$WAYLAND_DISPLAY`.
-
-To inspect everything quickly:
+6. Run OpenCode:
 
 ```bash
-scripts/check-wayland.sh
+dev-opencode.sh
 ```
 
-If you changed `emacs.d/*` and want to re-sync immediately without restarting the container:
+7. Inspect status / stop container:
 
 ```bash
-scripts/enter-shell.sh
-$ scripts/sync-emacs-base.sh
+dev-status.sh
+dev-down.sh
 ```
 
-7. Run OpenCode:
+## What `dev-up.sh` does
+
+When you run `dev-up.sh`, it:
+1. Resolves git repo root (`git rev-parse --show-toplevel`).
+2. Ensures `.devcontainer` exists (`dev-init.sh` behavior).
+3. Loads `.devcontainer/.env`.
+4. Bootstraps common home via `setup-common-home.sh`.
+5. Regenerates `.devcontainer/.runtime/compose.env`.
+6. Rebuilds `.devcontainer/.runtime/secrets` symlink bundle.
+7. Runs `docker compose up -d --build` using central `docker-compose.yml`.
+
+## Common home behavior (`HOST_COMMON_HOME`)
+
+`setup-common-home.sh` creates/refreshes:
+- copied files:
+  - `.bashrc`
+  - `.emacs.d/init.el`
+  - `.emacs.d/early-init.el`
+- symlink:
+  - `.emacs.d/repo-emacs.d` -> `/workspace/<repo>/emacs.d`
+- local override stubs (if missing):
+  - `.bashrc.local`
+  - `.emacs.d/init.local.el`
+  - `.emacs.d/early-init.local.el`
+
+Emacs Customize writes to `~/.emacs.d/init.local.el` (`custom-file`), keeping repo-managed defaults unchanged.
+
+## Script reference (brief)
+
+- `dev-init.sh`: create `<repo>/.devcontainer` scaffolding and `.env` template.
+- `dev-up.sh`: bootstrap common home, generate runtime env/secrets, build/start container.
+- `dev-shell.sh`: interactive shell in running container (auto-start if needed).
+- `dev-emacs.sh`: launch Emacs in terminal or GUI mode.
+- `dev-opencode.sh`: run OpenCode in container context.
+- `dev-status.sh`: print resolved repo/context paths and compose status.
+- `dev-down.sh`: stop container for current repo context.
+- `setup-common-home.sh`: manage shared `HOST_COMMON_HOME` template files.
+- `test-common-home.sh`: validate common-home bootstrap behavior.
+- `check-wayland.sh`: inspect Wayland-related container readiness.
+- `sync-status.sh`: show container and host git status summary.
+- `new-worktree.sh` / `new-disposable-branch.sh`: helper workflows for git branches/worktrees.
+
+## Verification checklist
+
+From a repo using this system:
 
 ```bash
-scripts/run-opencode.sh
+dev-status.sh
+dev-shell.sh
 ```
 
-## Secrets model
+Inside container:
 
-- Put paths in `secrets-paths.txt` (file/dir per line, comments allowed).
-- `scripts/dev-up.sh` builds `.runtime/secrets/` symlinks.
-- Compose mounts that directory read-only at `/secrets`.
-- `scripts/run-opencode.sh` sources `/secrets/*.env` automatically.
-
-## Important behavior changes from copy-workspace mode
-
-- `scripts/init-workspace.sh` is now a no-op.
-- `scripts/export-to-host.sh` is now a no-op (workspace is already host bind mount).
-- `scripts/sync-status.sh` still shows container and host git status.
+```bash
+pwd
+ls -la ~/.emacs.d ~/.bashrc ~/.bashrc.local
+emacs -Q --batch -l ~/.emacs.d/early-init.el -l ~/.emacs.d/init.el --eval '(message "emacs-init-ok")'
+```
 
 ## Notes
 
+- Git repositories are required (non-git directories are not supported in this phase).
 - Linux-focused workflow.
-- Image installs `emacs-pgtk` (Wayland-capable Emacs build).
-- LSP servers and OpenCode are preinstalled in the image.
-- `git push origin` is blocked by a git wrapper at `/usr/local/bin/git`.
+- `git push origin` is blocked in-container by `/usr/local/bin/git` wrapper.
