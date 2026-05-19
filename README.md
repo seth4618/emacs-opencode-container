@@ -116,3 +116,18 @@ emacs -Q --batch -l ~/.emacs.d/early-init.el -l ~/.emacs.d/init.el --eval '(mess
 - Image installs `emacs-pgtk` (Wayland-capable Emacs build).
 - LSP servers and OpenCode are preinstalled in the image.
 - `git push origin` is blocked in-container by `/usr/local/bin/git` wrapper.
+
+
+## Central command usage (run from any git repo)
+
+With `scripts/` on your `PATH`, the recommended commands are:
+
+- `dev-init.sh` - create `<repo>/.devcontainer/.env` if missing
+- `dev-up.sh` - bootstrap common home and start/update container
+- `dev-shell.sh` - open interactive shell
+- `dev-emacs.sh --terminal|--gui` - start Emacs in container
+- `dev-opencode.sh` - run OpenCode in container
+- `dev-status.sh` - show resolved repo/context and compose status
+- `dev-down.sh` - stop project container
+
+These commands require a git worktree (repo root is discovered via `git rev-parse --show-toplevel`).

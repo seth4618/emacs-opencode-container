@@ -181,6 +181,6 @@ Optional:
 
 ## Open decisions
 
-- Preferred command names (`dev-*` vs `opencode-*`).
-- Whether to keep repo-local wrappers permanently as tiny forwarders.
-- Whether to support non-git directories via explicit `--repo-root` only.
+- Command names standardized on `dev-*`.
+- Non-git directories are not supported in this phase.
+- Repo-local wrapper scripts are deprecated in favor of central commands on `PATH`.
