@@ -172,15 +172,12 @@ Optional:
 - Generated files under `.runtime/` may be replaced each run.
 - Commands must never depend on current working directory once `REPO_ROOT` is resolved.
 
-## Migration plan from current repo-local script model
+## Migration status
 
-1. Introduce centralized command wrappers (`dev-init`, `dev-up`, `dev-shell`, etc.).
-2. Move env/runtime artifacts to `${REPO_ROOT}/.devcontainer`.
-3. Keep backward-compatible shims temporarily (`scripts/dev-up.sh` delegates to central command) with deprecation notice.
-4. Remove shims after one release cycle.
+Centralized `dev-*` commands and per-repo `.devcontainer` runtime layout are now the active model.
 
-## Open decisions
+## Current decisions (implemented)
 
-- Command names standardized on `dev-*`.
+- Command names are standardized on `dev-*`.
 - Non-git directories are not supported in this phase.
-- Repo-local wrapper scripts are deprecated in favor of central commands on `PATH`.
+- Workflow uses central commands on `PATH` with per-repo `.devcontainer` state.

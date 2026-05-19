@@ -1,39 +1,109 @@
-# Per-repo Emacs + OpenCode Docker environment
+# Emacs + OpenCode Dev Container (Central `dev-*` Commands)
 
-This setup runs Emacs and OpenCode inside Docker while your repository stays bind-mounted from host under `/workspace/<repo-name>`.
+This repository provides a **centralized dev-container toolkit**. You install/use these scripts once, add them to your `PATH`, and run them from any supported git repository.
 
-## Architecture (three-tier storage)
+The runtime model is:
+- **Common**: shared host home fragments (`HOST_COMMON_HOME`) used across projects.
+- **Project-specific**: your git repo bind-mounted to `/workspace/<repo>`.
+- **Instance-specific**: per-repo runtime artifacts in `<repo>/.devcontainer/.runtime`.
 
-1. **Common (shared across projects)**
-   - Host path: `${HOST_COMMON_HOME:-$HOME/.opencode-common-home}`
-   - Contains shared shell/Emacs entrypoints and user overrides.
-   - Bootstrapped from `home-template/` by `scripts/setup-common-home.sh`.
+## One-time setup (host machine)
 
-2. **Project-specific**
-   - Host repo bind-mounted to `/workspace/${WORKSPACE_DIRNAME}`.
-   - All project code, git operations, and project tools run here.
+1. Clone this repository (tooling home):
 
-3. **Instance-specific (ephemeral runtime)**
-   - Container runtime-only state that is not part of common or project mounts.
+```bash
+git clone <this-repo-url> ~/src/emacs-opencode-container
+```
 
-## What is mounted into the container
+2. Add scripts to your shell `PATH` (example for bash):
 
-From project host checkout:
-- `${HOST_REPO_PATH}` -> `/workspace/${WORKSPACE_DIRNAME}`
+```bash
+echo 'export PATH="$HOME/src/emacs-opencode-container/scripts:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+```
 
-From common home:
-- `${HOST_COMMON_HOME}/.emacs.d` -> `/home/${CONTAINER_USER:-dev}/.emacs.d`
-- `${HOST_COMMON_HOME}/.bashrc` -> `/home/${CONTAINER_USER:-dev}/.bashrc`
-- `${HOST_COMMON_HOME}/.bashrc.local` -> `/home/${CONTAINER_USER:-dev}/.bashrc.local`
+3. Verify commands are discoverable:
 
-From host caches/state:
-- npm/pnpm/pip caches
-- host `.cache`
-- OpenCode state dir
+```bash
+which dev-up.sh
+aaaa=$(which dev-init.sh); echo "$aaaa"
+```
 
-## Common home behavior
+4. Ensure prerequisites exist on host:
+- Docker + Docker Compose plugin
+- Git
+- Wayland socket path (for GUI Emacs mode)
 
-`scripts/setup-common-home.sh` creates/refreshes:
+## Per-repository setup and usage
+
+Run these commands **from inside a git repository** you want to develop in.
+
+1. Initialize repo-local container config:
+
+```bash
+dev-init.sh
+```
+
+This creates:
+- `<repo>/.devcontainer/.env`
+- `<repo>/.devcontainer/.runtime/`
+
+2. Edit `<repo>/.devcontainer/.env` and set required values:
+- `HOST_REPO_PATH` (absolute path to this repo)
+- `WAYLAND_SOCKET_PATH`
+
+Optional values:
+- `COMPOSE_PROJECT_NAME`
+- `HOST_COMMON_HOME`
+- cache/state overrides
+
+3. Start or update the container:
+
+```bash
+dev-up.sh
+```
+
+4. Open a shell in the container:
+
+```bash
+dev-shell.sh
+```
+
+5. Start Emacs:
+
+```bash
+dev-emacs.sh --terminal
+# or
+dev-emacs.sh --gui
+```
+
+6. Run OpenCode:
+
+```bash
+dev-opencode.sh
+```
+
+7. Inspect status / stop container:
+
+```bash
+dev-status.sh
+dev-down.sh
+```
+
+## What `dev-up.sh` does
+
+When you run `dev-up.sh`, it:
+1. Resolves git repo root (`git rev-parse --show-toplevel`).
+2. Ensures `.devcontainer` exists (`dev-init.sh` behavior).
+3. Loads `.devcontainer/.env`.
+4. Bootstraps common home via `setup-common-home.sh`.
+5. Regenerates `.devcontainer/.runtime/compose.env`.
+6. Rebuilds `.devcontainer/.runtime/secrets` symlink bundle.
+7. Runs `docker compose up -d --build` using central `docker-compose.yml`.
+
+## Common home behavior (`HOST_COMMON_HOME`)
+
+`setup-common-home.sh` creates/refreshes:
 - copied files:
   - `.bashrc`
   - `.emacs.d/init.el`
@@ -45,89 +115,42 @@ From host caches/state:
   - `.emacs.d/init.local.el`
   - `.emacs.d/early-init.local.el`
 
-Emacs Customize writes to `~/.emacs.d/init.local.el` (`custom-file`) so repo-managed defaults are not edited.
+Emacs Customize writes to `~/.emacs.d/init.local.el` (`custom-file`), keeping repo-managed defaults unchanged.
 
-## Quick start
+## Script reference (brief)
 
-1. Create env file:
+- `dev-init.sh`: create `<repo>/.devcontainer` scaffolding and `.env` template.
+- `dev-up.sh`: bootstrap common home, generate runtime env/secrets, build/start container.
+- `dev-shell.sh`: interactive shell in running container (auto-start if needed).
+- `dev-emacs.sh`: launch Emacs in terminal or GUI mode.
+- `dev-opencode.sh`: run OpenCode in container context.
+- `dev-status.sh`: print resolved repo/context paths and compose status.
+- `dev-down.sh`: stop container for current repo context.
+- `setup-common-home.sh`: manage shared `HOST_COMMON_HOME` template files.
+- `test-common-home.sh`: validate common-home bootstrap behavior.
+- `check-wayland.sh`: inspect Wayland-related container readiness.
+- `sync-status.sh`: show container and host git status summary.
+- `new-worktree.sh` / `new-disposable-branch.sh`: helper workflows for git branches/worktrees.
+
+## Verification checklist
+
+From a repo using this system:
 
 ```bash
-cp .env.example .env
+dev-status.sh
+dev-shell.sh
 ```
 
-2. Edit `.env` with at least:
-- `HOST_REPO_PATH` (absolute path)
-- `WAYLAND_SOCKET_PATH`
-- optionally `COMPOSE_PROJECT_NAME`, `HOST_COMMON_HOME`
-
-3. (Optional) configure secrets list:
+Inside container:
 
 ```bash
-cp secrets-paths.txt.example secrets-paths.txt
-```
-
-4. Start/update container:
-
-```bash
-scripts/dev-up.sh
-```
-
-`dev-up.sh` auto-runs `scripts/setup-common-home.sh` before `docker compose up`.
-
-5. Enter shell:
-
-```bash
-scripts/enter-shell.sh
-```
-
-6. Start Emacs:
-
-```bash
-scripts/start-terminal-emacs.sh
-# or
-scripts/start-gui-emacs.sh
-```
-
-7. Run OpenCode:
-
-```bash
-scripts/run-opencode.sh
-```
-
-## Testing and verification
-
-Automated bootstrap check:
-
-```bash
-scripts/test-common-home.sh
-```
-
-Container smoke checks:
-
-```bash
-scripts/enter-shell.sh
+pwd
 ls -la ~/.emacs.d ~/.bashrc ~/.bashrc.local
 emacs -Q --batch -l ~/.emacs.d/early-init.el -l ~/.emacs.d/init.el --eval '(message "emacs-init-ok")'
 ```
 
 ## Notes
 
+- Git repositories are required (non-git directories are not supported in this phase).
 - Linux-focused workflow.
-- Image installs `emacs-pgtk` (Wayland-capable Emacs build).
-- LSP servers and OpenCode are preinstalled in the image.
 - `git push origin` is blocked in-container by `/usr/local/bin/git` wrapper.
-
-
-## Central command usage (run from any git repo)
-
-With `scripts/` on your `PATH`, the recommended commands are:
-
-- `dev-init.sh` - create `<repo>/.devcontainer/.env` if missing
-- `dev-up.sh` - bootstrap common home and start/update container
-- `dev-shell.sh` - open interactive shell
-- `dev-emacs.sh --terminal|--gui` - start Emacs in container
-- `dev-opencode.sh` - run OpenCode in container
-- `dev-status.sh` - show resolved repo/context and compose status
-- `dev-down.sh` - stop project container
-
-These commands require a git worktree (repo root is discovered via `git rev-parse --show-toplevel`).
