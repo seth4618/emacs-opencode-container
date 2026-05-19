@@ -40,6 +40,16 @@ install_file() {
   echo "install: $dst"
 }
 
+
+ensure_local_file() {
+  local path="$1"
+  if [[ ! -e "$path" ]]; then
+    : > "$path"
+    chmod 0644 "$path"
+    echo "create: $path"
+  fi
+}
+
 link_item() {
   local src="$1"
   local dst="$2"
@@ -65,6 +75,10 @@ link_item() {
 install_file "$TEMPLATE_ROOT/.bashrc" "$TARGET_HOME/.bashrc"
 install_file "$TEMPLATE_ROOT/.emacs.d/init.el" "$TARGET_HOME/.emacs.d/init.el"
 install_file "$TEMPLATE_ROOT/.emacs.d/early-init.el" "$TARGET_HOME/.emacs.d/early-init.el"
+
+ensure_local_file "$TARGET_HOME/.bashrc.local"
+ensure_local_file "$TARGET_HOME/.emacs.d/init.local.el"
+ensure_local_file "$TARGET_HOME/.emacs.d/early-init.local.el"
 
 repo_emacs_target="${CONTAINER_REPO_ROOT:-$REPO_ROOT}/emacs.d"
 link_item "$repo_emacs_target" "$TARGET_HOME/.emacs.d/repo-emacs.d"

@@ -149,13 +149,15 @@ The script currently links:
 
 Common shell and Emacs entrypoints support local user overrides:
 
-- `~/.bashrc.local`
+- `~/.bashrc.local` (mounted from `${HOST_COMMON_HOME}/.bashrc.local`)
 - `~/.emacs.d/init.local.el`
 - `~/.emacs.d/early-init.local.el`
 
 `init.local.el` is also used as Emacs `custom-file`, so Customize UI changes are written there instead of the repo-managed template files.
 
 These files are optional and are not tracked in this repo.
+
+If your shell overrides are not visible in the container, confirm `${HOST_COMMON_HOME}/.bashrc.local` exists on host, then run `scripts/dev-up.sh` again to refresh mounts.
 
 
 ### How to test this

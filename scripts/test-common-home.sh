@@ -44,4 +44,14 @@ assert_file_equals "$TARGET_HOME/.emacs.d/init.el" "$REPO_ROOT/home-template/.em
 assert_file_equals "$TARGET_HOME/.emacs.d/early-init.el" "$REPO_ROOT/home-template/.emacs.d/early-init.el"
 assert_link "$TARGET_HOME/.emacs.d/repo-emacs.d" "/workspace/test-repo/emacs.d"
 
+if [[ ! -f "$TARGET_HOME/.bashrc.local" ]]; then
+  echo "FAIL: expected $TARGET_HOME/.bashrc.local to exist" >&2
+  exit 1
+fi
+
+if [[ ! -f "$TARGET_HOME/.emacs.d/init.local.el" ]]; then
+  echo "FAIL: expected $TARGET_HOME/.emacs.d/init.local.el to exist" >&2
+  exit 1
+fi
+
 printf 'PASS: common home bootstrap links are correct\n'
