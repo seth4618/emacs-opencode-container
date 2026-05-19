@@ -29,7 +29,7 @@ HOST_SECRETS_BUNDLE_DIR="${HOST_SECRETS_BUNDLE_DIR:-$RUNTIME_DIR/secrets}"
 mkdir -p "$HOST_OPENCODE_DIR" "$HOST_CACHE_DIR" \
   "$HOST_NPM_CACHE_DIR" "$HOST_PNPM_STORE_DIR" "$HOST_PNPM_HOME_DIR" "$HOST_PIP_CACHE_DIR"
 
-"$ROOT_DIR/scripts/setup-common-home.sh" "$HOST_COMMON_HOME" >/dev/null
+"$ROOT_DIR/scripts/setup-common-home.sh" "$HOST_COMMON_HOME" "/workspace/$WORKSPACE_DIRNAME" >/dev/null
 
 find "$RUNTIME_DIR/secrets" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
 if [[ -f "$SECRETS_LIST_FILE" ]]; then

@@ -127,14 +127,23 @@ scripts/setup-common-home.sh /absolute/path/to/common-home
 
 By default it creates `~/.opencode-common-home`.
 
+If you previously used an earlier version of this setup and Emacs init files are broken in-container, re-run:
+
+```bash
+scripts/setup-common-home.sh
+```
+
+That refreshes copied entrypoint files and repairs the `repo-emacs.d` symlink target.
+
+
 `scripts/dev-up.sh` now automatically bootstraps `${HOST_COMMON_HOME:-$HOME/.opencode-common-home}` before running `docker compose`, and the container mounts `.bashrc` and `.emacs.d` from that common home.
 
 The script currently links:
 
-- `.bashrc` -> `home-template/.bashrc`
-- `.emacs.d/init.el` -> `home-template/.emacs.d/init.el`
-- `.emacs.d/early-init.el` -> `home-template/.emacs.d/early-init.el`
-- `.emacs.d/repo-emacs.d` -> `emacs.d/` in this repository
+- `.bashrc` is copied from `home-template/.bashrc`
+- `.emacs.d/init.el` is copied from `home-template/.emacs.d/init.el`
+- `.emacs.d/early-init.el` is copied from `home-template/.emacs.d/early-init.el`
+- `.emacs.d/repo-emacs.d` is symlinked to `/workspace/<repo>/emacs.d` for in-container loading
 
 ### Local overrides
 
