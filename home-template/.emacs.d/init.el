@@ -4,7 +4,7 @@
 (setq custom-file (expand-file-name "init.local.el" user-emacs-directory))
 
 (defvar common-repo-emacs-init
-  (expand-file-name "../repo-emacs.d/init.el" user-emacs-directory)
+  (expand-file-name "repo-emacs.d/init.el" user-emacs-directory)
   "Symlink path to repository-managed init.el.")
 
 (when (file-exists-p common-repo-emacs-init)
