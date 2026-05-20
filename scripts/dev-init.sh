@@ -18,8 +18,30 @@ WAYLAND_SOCKET_PATH=/run/user/$(id -u)/wayland-0
 # Optional
 COMPOSE_PROJECT_NAME=$(basename "$REPO_ROOT")-dev
 # HOST_COMMON_HOME=$HOME/.opencode-common-home
+# HOST_OPENCODE_DIR=$HOME/.local/share/opencode-$(basename "$REPO_ROOT")
+# HOST_SSH_DIR=$HOME/.ssh
+# OPENCODE_MODEL=gpt-5
 ENV
   echo "Created $PROJECT_ENV_FILE"
 else
   echo "Exists: $PROJECT_ENV_FILE"
+fi
+
+OPENCODE_ENV_TEMPLATE="$PROJECT_DOTDIR/opencode.env.template"
+if [[ ! -f "$OPENCODE_ENV_TEMPLATE" ]]; then
+  cat > "$OPENCODE_ENV_TEMPLATE" <<'ENV'
+# OpenCode runtime environment template (repo-specific).
+# Copy to .devcontainer/opencode.env and uncomment what you need.
+
+# Model defaults (examples):
+# OPENCODE_MODEL=gpt-5
+# OPENCODE_MODEL=codex
+
+# Provider credentials (examples):
+# OPENAI_API_KEY=
+# OPENAI_BASE_URL=
+ENV
+  echo "Created $OPENCODE_ENV_TEMPLATE"
+else
+  echo "Exists: $OPENCODE_ENV_TEMPLATE"
 fi

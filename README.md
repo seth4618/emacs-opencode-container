@@ -47,6 +47,7 @@ dev-init.sh
 This creates:
 - `<repo>/.devcontainer/.env`
 - `<repo>/.devcontainer/.runtime/`
+- `<repo>/.devcontainer/opencode.env.template`
 
 2. Edit `<repo>/.devcontainer/.env` and set required values:
 - `HOST_REPO_PATH` (absolute path to this repo)
@@ -55,6 +56,9 @@ This creates:
 Optional values:
 - `COMPOSE_PROJECT_NAME`
 - `HOST_COMMON_HOME`
+- `HOST_OPENCODE_DIR` (set per repo/container to avoid state collisions)
+- `HOST_SSH_DIR` (host SSH directory mounted read-only to `~/.ssh` in container)
+- `OPENCODE_MODEL` (repo default model; falls back to `$HOST_COMMON_HOME/.opencode-common.env`)
 - cache/state overrides
 
 3. Start or update the container:
@@ -83,6 +87,20 @@ dev-emacs.sh --gui
 dev-opencode.sh
 ```
 
+Copy the template when configuring OpenCode provider settings:
+
+```bash
+cp .devcontainer/opencode.env.template .devcontainer/opencode.env
+```
+
+
+If you want stronger isolation between concurrent repo containers, run:
+
+```bash
+dev-bootstrap-opencode.sh
+```
+
+This seeds repo-specific defaults for `HOST_OPENCODE_DIR` and `HOST_COMMON_HOME` in `.devcontainer/.env` (only when missing).
 7. Inspect status / stop container:
 
 ```bash
@@ -98,8 +116,10 @@ When you run `dev-up.sh`, it:
 3. Loads `.devcontainer/.env`.
 4. Bootstraps common home via `setup-common-home.sh`.
 5. Regenerates `.devcontainer/.runtime/compose.env`.
-6. Rebuilds `.devcontainer/.runtime/secrets` symlink bundle.
+6. Rebuilds `.devcontainer/.runtime/secrets` secrets bundle.
 7. Runs `docker compose up -d --build` using central `docker-compose.yml`.
+
+Secrets are materialized into `<repo>/.devcontainer/.runtime/secrets` as real files/directories during `dev-up.sh` (not host-path symlinks), then mounted at `/secrets` in the container. Re-run `dev-up.sh` after changing `secrets-paths.txt` entries or secret file contents.
 
 ## Common home behavior (`HOST_COMMON_HOME`)
 
@@ -120,6 +140,7 @@ Emacs Customize writes to `~/.emacs.d/init.local.el` (`custom-file`), keeping re
 ## Script reference (brief)
 
 - `dev-init.sh`: create `<repo>/.devcontainer` scaffolding and `.env` template.
+- `dev-bootstrap-opencode.sh`: seed repo-specific `HOST_OPENCODE_DIR` and `HOST_COMMON_HOME` defaults (without overriding existing values).
 - `dev-up.sh`: bootstrap common home, generate runtime env/secrets, build/start container.
 - `dev-shell.sh`: interactive shell in running container (auto-start if needed).
 - `dev-emacs.sh`: launch Emacs in terminal or GUI mode.
@@ -154,3 +175,18 @@ emacs -Q --batch -l ~/.emacs.d/early-init.el -l ~/.emacs.d/init.el --eval '(mess
 - Git repositories are required (non-git directories are not supported in this phase).
 - Linux-focused workflow.
 - `git push origin` is blocked in-container by `/usr/local/bin/git` wrapper.
+
+
+### OpenCode model defaults
+
+Model default precedence is:
+1. `OPENCODE_MODEL` in `<repo>/.devcontainer/.env`
+2. `OPENCODE_MODEL` in `$HOST_COMMON_HOME/.opencode-common.env`
+3. OpenCode built-in default
+
+You can also place additional OpenCode env defaults in `<repo>/.devcontainer/opencode.env` (repo-specific) or `~/.opencode-common.env` (common-home) for container runtime wrappers.
+
+
+## Troubleshooting
+
+- If `dev-opencode.sh` prints `opencode command not found`, rebuild the container image after setting `OPENCODE_NPM_PACKAGE` in `<repo>/.devcontainer/.env` and run `dev-up.sh` again.

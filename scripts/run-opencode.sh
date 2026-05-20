@@ -17,6 +17,22 @@ exec_dev bash -lc '
     shopt -u nullglob
   fi
 
+  repo_opencode_env="${PROJECT_WORKSPACE:-/workspace}/.devcontainer/opencode.env"
+  common_opencode_env="$HOME/.opencode-common.env"
+
+  if [[ -f "$common_opencode_env" ]]; then
+    set -a
+    # shellcheck disable=SC1090
+    source "$common_opencode_env"
+    set +a
+  fi
+  if [[ -f "$repo_opencode_env" ]]; then
+    set -a
+    # shellcheck disable=SC1090
+    source "$repo_opencode_env"
+    set +a
+  fi
+
   if ! command -v opencode >/dev/null 2>&1; then
     echo "opencode command not found. Rebuild image and verify OPENCODE_NPM_PACKAGE in .env"
     exit 1

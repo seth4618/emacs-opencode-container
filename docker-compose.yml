@@ -31,6 +31,7 @@ services:
       OPENCODE_HOME: /opencode-state
       OPENCODE_CONFIG_DIR: /opencode-state
       OPENCODE_AUTH_DIR: /opencode-state
+      OPENCODE_MODEL: ${OPENCODE_MODEL:-}
       NPM_CONFIG_CACHE: /cache/npm
       PNPM_HOME: /cache/pnpm
       PNPM_STORE_PATH: /cache/pnpm-store
@@ -58,6 +59,10 @@ services:
       - type: bind
         source: ${HOST_COMMON_HOME}/.bashrc.local
         target: /home/${CONTAINER_USER:-dev}/.bashrc.local
+      - type: bind
+        source: ${HOST_SSH_DIR}
+        target: /home/${CONTAINER_USER:-dev}/.ssh
+        read_only: true
       - type: bind
         source: ${HOST_NPM_CACHE_DIR}
         target: /cache/npm
