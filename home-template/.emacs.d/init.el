@@ -10,5 +10,8 @@
 (when (file-exists-p common-repo-emacs-init)
   (load-file common-repo-emacs-init))
 
+(let ((compose-project-name (or (getenv "COMPOSE_PROJECT_NAME") "unknown")))
+  (setq frame-title-format (format "Container: %s" compose-project-name)))
+
 (when (file-exists-p custom-file)
   (load-file custom-file))
