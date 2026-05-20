@@ -14,3 +14,7 @@ echo "HOST_REPO_PATH=${HOST_REPO_PATH:-}"
 echo "WORKSPACE_DIRNAME=${WORKSPACE_DIRNAME:-}"
 echo "HOST_COMMON_HOME=${HOST_COMMON_HOME:-}"
 run_compose ps
+
+if [[ -f "$PROJECT_RUNTIME_DIR/compose.env" ]]; then
+  echo "EFFECTIVE_OPENCODE_MODEL=$(grep -E '^OPENCODE_MODEL=' "$PROJECT_RUNTIME_DIR/compose.env" | tail -n1 | cut -d= -f2-)"
+fi

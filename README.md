@@ -85,6 +85,14 @@ dev-emacs.sh --gui
 dev-opencode.sh
 ```
 
+
+If you want stronger isolation between concurrent repo containers, run:
+
+```bash
+dev-bootstrap-opencode.sh
+```
+
+This seeds repo-specific defaults for `HOST_OPENCODE_DIR` and `HOST_COMMON_HOME` in `.devcontainer/.env` (only when missing).
 7. Inspect status / stop container:
 
 ```bash
@@ -122,6 +130,7 @@ Emacs Customize writes to `~/.emacs.d/init.local.el` (`custom-file`), keeping re
 ## Script reference (brief)
 
 - `dev-init.sh`: create `<repo>/.devcontainer` scaffolding and `.env` template.
+- `dev-bootstrap-opencode.sh`: seed repo-specific `HOST_OPENCODE_DIR` and `HOST_COMMON_HOME` defaults (without overriding existing values).
 - `dev-up.sh`: bootstrap common home, generate runtime env/secrets, build/start container.
 - `dev-shell.sh`: interactive shell in running container (auto-start if needed).
 - `dev-emacs.sh`: launch Emacs in terminal or GUI mode.
