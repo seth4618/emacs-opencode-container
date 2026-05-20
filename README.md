@@ -47,6 +47,7 @@ dev-init.sh
 This creates:
 - `<repo>/.devcontainer/.env`
 - `<repo>/.devcontainer/.runtime/`
+- `<repo>/.devcontainer/opencode.env.template`
 
 2. Edit `<repo>/.devcontainer/.env` and set required values:
 - `HOST_REPO_PATH` (absolute path to this repo)
@@ -56,6 +57,7 @@ Optional values:
 - `COMPOSE_PROJECT_NAME`
 - `HOST_COMMON_HOME`
 - `HOST_OPENCODE_DIR` (set per repo/container to avoid state collisions)
+- `HOST_SSH_DIR` (host SSH directory mounted read-only to `~/.ssh` in container)
 - `OPENCODE_MODEL` (repo default model; falls back to `$HOST_COMMON_HOME/.opencode-common.env`)
 - cache/state overrides
 
@@ -83,6 +85,12 @@ dev-emacs.sh --gui
 
 ```bash
 dev-opencode.sh
+```
+
+Copy the template when configuring OpenCode provider settings:
+
+```bash
+cp .devcontainer/opencode.env.template .devcontainer/opencode.env
 ```
 
 
