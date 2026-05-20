@@ -44,7 +44,12 @@ if [[ -f "$SECRETS_LIST_FILE" ]]; then
   while IFS= read -r path; do
     [[ -z "$path" || "$path" =~ ^# ]] && continue
     if [[ -e "$path" ]]; then
-      ln -s "$path" "$PROJECT_RUNTIME_DIR/secrets/$(printf '%03d' "$i")-$(basename "$path")"
+      target="$PROJECT_RUNTIME_DIR/secrets/$(printf '%03d' "$i")-$(basename "$path")"
+      if [[ -d "$path" ]]; then
+        cp -a "$path" "$target"
+      else
+        cp -aL "$path" "$target"
+      fi
       i=$((i + 1))
     fi
   done < "$SECRETS_LIST_FILE"

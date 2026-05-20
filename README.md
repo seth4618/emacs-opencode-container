@@ -108,8 +108,10 @@ When you run `dev-up.sh`, it:
 3. Loads `.devcontainer/.env`.
 4. Bootstraps common home via `setup-common-home.sh`.
 5. Regenerates `.devcontainer/.runtime/compose.env`.
-6. Rebuilds `.devcontainer/.runtime/secrets` symlink bundle.
+6. Rebuilds `.devcontainer/.runtime/secrets` secrets bundle.
 7. Runs `docker compose up -d --build` using central `docker-compose.yml`.
+
+Secrets are materialized into `<repo>/.devcontainer/.runtime/secrets` as real files/directories during `dev-up.sh` (not host-path symlinks), then mounted at `/secrets` in the container. Re-run `dev-up.sh` after changing `secrets-paths.txt` entries or secret file contents.
 
 ## Common home behavior (`HOST_COMMON_HOME`)
 
