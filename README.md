@@ -55,6 +55,8 @@ This creates:
 Optional values:
 - `COMPOSE_PROJECT_NAME`
 - `HOST_COMMON_HOME`
+- `HOST_OPENCODE_DIR` (set per repo/container to avoid state collisions)
+- `OPENCODE_MODEL` (repo default model; falls back to `$HOST_COMMON_HOME/.opencode-common.env`)
 - cache/state overrides
 
 3. Start or update the container:
@@ -154,3 +156,13 @@ emacs -Q --batch -l ~/.emacs.d/early-init.el -l ~/.emacs.d/init.el --eval '(mess
 - Git repositories are required (non-git directories are not supported in this phase).
 - Linux-focused workflow.
 - `git push origin` is blocked in-container by `/usr/local/bin/git` wrapper.
+
+
+### OpenCode model defaults
+
+Model default precedence is:
+1. `OPENCODE_MODEL` in `<repo>/.devcontainer/.env`
+2. `OPENCODE_MODEL` in `$HOST_COMMON_HOME/.opencode-common.env`
+3. OpenCode built-in default
+
+You can also place additional OpenCode env defaults in `<repo>/.devcontainer/opencode.env` (repo-specific) or `~/.opencode-common.env` (common-home) for container runtime wrappers.

@@ -31,6 +31,7 @@ services:
       OPENCODE_HOME: /opencode-state
       OPENCODE_CONFIG_DIR: /opencode-state
       OPENCODE_AUTH_DIR: /opencode-state
+      OPENCODE_MODEL: ${OPENCODE_MODEL:-}
       NPM_CONFIG_CACHE: /cache/npm
       PNPM_HOME: /cache/pnpm
       PNPM_STORE_PATH: /cache/pnpm-store

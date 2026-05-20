@@ -18,6 +18,8 @@ WAYLAND_SOCKET_PATH=/run/user/$(id -u)/wayland-0
 # Optional
 COMPOSE_PROJECT_NAME=$(basename "$REPO_ROOT")-dev
 # HOST_COMMON_HOME=$HOME/.opencode-common-home
+# HOST_OPENCODE_DIR=$HOME/.local/share/opencode-$(basename "$REPO_ROOT")
+# OPENCODE_MODEL=gpt-5
 ENV
   echo "Created $PROJECT_ENV_FILE"
 else
