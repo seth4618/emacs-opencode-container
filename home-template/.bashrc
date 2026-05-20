@@ -6,6 +6,22 @@ if [[ $- == *i* ]]; then
   PS1="${PS1:-\\u@\\h:\\w\\$ }"
 fi
 
+# Populate COMPOSE_PROJECT_NAME from devcontainer env files when missing.
+if [[ -z "${COMPOSE_PROJECT_NAME:-}" ]]; then
+  __container_bashrc_path="$(readlink -f "${BASH_SOURCE[0]}")"
+  __container_repo_root="$(cd "$(dirname "$__container_bashrc_path")/.." && pwd)"
+  for __container_env_file in     "$__container_repo_root/.devcontainer/.env"     "$PWD/.devcontainer/.env"     "$HOME/.devcontainer/.env"; do
+    if [[ -f "$__container_env_file" ]]; then
+      __container_compose_line="$(sed -n 's/^COMPOSE_PROJECT_NAME=//p' "$__container_env_file" | head -n 1)"
+      if [[ -n "$__container_compose_line" ]]; then
+        export COMPOSE_PROJECT_NAME="$__container_compose_line"
+        break
+      fi
+    fi
+  done
+  unset __container_bashrc_path __container_repo_root __container_env_file __container_compose_line
+fi
+
 # Set terminal title when supported.
 if [[ $- == *i* ]] && [[ "${TERM:-}" != "dumb" ]]; then
   __container_title_project="${COMPOSE_PROJECT_NAME:-unknown}"
