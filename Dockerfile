@@ -4,6 +4,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 ARG USERNAME=dev
 ARG USER_UID=1000
 ARG USER_GID=1000
+ARG OPENCODE_NPM_PACKAGE=opencode-ai
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
@@ -36,7 +37,8 @@ RUN npm install -g \
     pyright \
     solhint \
     hardhat \
-    @nomicfoundation/solidity-language-server
+    @nomicfoundation/solidity-language-server \
+    "$OPENCODE_NPM_PACKAGE"
 
 COPY docker/entrypoint.sh /usr/local/bin/container-entrypoint
 COPY docker/git-safe /usr/local/bin/git
