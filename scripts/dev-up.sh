@@ -63,7 +63,7 @@ if [[ -f "$SECRETS_LIST_FILE" ]]; then
         target="$PROJECT_RUNTIME_DIR/secrets/$(printf '%03d' "$i")-$(basename "$path")"
         cp -a "$path" "$target"
       else
-        target="$PROJECT_RUNTIME_DIR/secrets/$(printf '%03d' "$i")-$(basename "$path").env"
+        target="$PROJECT_RUNTIME_DIR/secrets/$(printf '%03d' "$i")-$(basename "$path")"
         cp -aL "$path" "$target"
       fi
       i=$((i + 1))
