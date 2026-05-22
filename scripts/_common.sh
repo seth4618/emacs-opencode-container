@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-set -euo pipefail
-
 TOOL_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 COMPOSE_CMD=(docker compose)
 SERVICE_NAME="dev"
