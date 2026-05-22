@@ -28,7 +28,7 @@ services:
       HOST_REPO_PATH: ${HOST_REPO_PATH}
       WORKSPACE_DIRNAME: ${WORKSPACE_DIRNAME}
       CONTAINER_PROMPT_PREFIX: C
-      OPENCODE_HOME: /opencode-share
+      OPENCODE_HOME: /opencode-state
       OPENCODE_CONFIG_DIR: /opencode-share
       OPENCODE_AUTH_DIR: /opencode-share
       OPENCODE_STATE_DIR: /opencode-state

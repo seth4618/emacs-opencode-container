@@ -198,10 +198,10 @@ You can also place additional OpenCode env defaults in `<repo>/.devcontainer/ope
 
 - Shared across all repos/containers:
   - `HOST_OPENCODE_SHARE_DIR=~/.local/share/opencode`
-  - Contains auth and persistent OpenCode data.
+  - Contains shared auth/config.
 - Per-repo (persistent but isolated):
   - `HOST_OPENCODE_STATE_DIR=~/.local/state/opencode-projects/<repo>`
-  - Keeps model/history/state easy to inspect later without cross-project collisions.
+  - Contains runtime OpenCode home/state (DB, logs, history) to avoid cross-project collisions.
 
 
 ## Troubleshooting
