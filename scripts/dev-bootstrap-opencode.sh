@@ -9,7 +9,7 @@ PROJECT_ENV_FILE="$REPO_ROOT/.devcontainer/.env"
 
 repo_name="$(basename "$REPO_ROOT")"
 default_share_dir="$HOME/.local/share/opencode"
-default_state_dir="$HOME/.local/state/opencode-projects/$repo_name"
+default_state_dir="$REPO_ROOT/.devcontainer/.runtime/opencode-state"
 default_common_home="$HOME/.opencode-common-home-$repo_name"
 
 tmp_file="$(mktemp)"

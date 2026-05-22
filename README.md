@@ -57,7 +57,7 @@ Optional values:
 - `COMPOSE_PROJECT_NAME`
 - `HOST_COMMON_HOME`
 - `HOST_OPENCODE_SHARE_DIR` (recommended shared path, usually `~/.local/share/opencode`)
-- `HOST_OPENCODE_STATE_DIR` (recommended per-project path, e.g. `~/.local/state/opencode-projects/<repo>`)
+- `HOST_OPENCODE_STATE_DIR` (recommended per-project path, default: `<repo>/.devcontainer/.runtime/opencode-state`)
 - `HOST_SSH_DIR` (host SSH directory mounted read-only to `~/.ssh` in container)
 - `OPENCODE_MODEL` (repo default model; falls back to `$HOST_COMMON_HOME/.opencode-common.env`)
 - cache/state overrides
@@ -103,7 +103,7 @@ dev-bootstrap-opencode.sh
 
 This seeds defaults for:
 - shared OpenCode data/auth: `HOST_OPENCODE_SHARE_DIR=$HOME/.local/share/opencode`
-- per-repo OpenCode state: `HOST_OPENCODE_STATE_DIR=$HOME/.local/state/opencode-projects/<repo>`
+- per-repo OpenCode state: `HOST_OPENCODE_STATE_DIR=<repo>/.devcontainer/.runtime/opencode-state`
 - repo common home: `HOST_COMMON_HOME=$HOME/.opencode-common-home-<repo>`
 
 Values are only written when missing in `.devcontainer/.env`.
@@ -200,7 +200,7 @@ You can also place additional OpenCode env defaults in `<repo>/.devcontainer/ope
   - `HOST_OPENCODE_SHARE_DIR=~/.local/share/opencode`
   - Contains shared auth/config.
 - Per-repo (persistent but isolated):
-  - `HOST_OPENCODE_STATE_DIR=~/.local/state/opencode-projects/<repo>`
+  - `HOST_OPENCODE_STATE_DIR=<repo>/.devcontainer/.runtime/opencode-state`
   - Contains runtime OpenCode home/state (DB, logs, history) to avoid cross-project collisions.
 
 
