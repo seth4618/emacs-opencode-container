@@ -59,10 +59,11 @@ if [[ -f "$SECRETS_LIST_FILE" ]]; then
   while IFS= read -r path; do
     [[ -z "$path" || "$path" =~ ^# ]] && continue
     if [[ -e "$path" ]]; then
-      target="$PROJECT_RUNTIME_DIR/secrets/$(printf '%03d' "$i")-$(basename "$path")"
       if [[ -d "$path" ]]; then
+        target="$PROJECT_RUNTIME_DIR/secrets/$(printf '%03d' "$i")-$(basename "$path")"
         cp -a "$path" "$target"
       else
+        target="$PROJECT_RUNTIME_DIR/secrets/$(printf '%03d' "$i")-$(basename "$path").env"
         cp -aL "$path" "$target"
       fi
       i=$((i + 1))

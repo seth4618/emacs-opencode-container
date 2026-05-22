@@ -4,6 +4,10 @@ source "$(dirname "$0")/_common.sh"
 
 exec_dev bash -lc '
   set -euo pipefail
+  cd "${PROJECT_WORKSPACE:-/workspace}"
+  source "${PROJECT_WORKSPACE:-/workspace}/scripts/load-runtime-env.sh"
+  load_runtime_env
+
   if [[ -z "${WAYLAND_DISPLAY:-}" ]]; then
     echo "WAYLAND_DISPLAY is not set in container. Check .env and docker-compose.yml"
     exit 1
@@ -16,6 +20,5 @@ exec_dev bash -lc '
     exit 1
   fi
 
-  cd "${PROJECT_WORKSPACE:-/workspace}"
   exec emacs
 '

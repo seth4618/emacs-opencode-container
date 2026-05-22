@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 source "$(dirname "$0")/_common.sh"
-exec_dev bash -lc 'cd "${PROJECT_WORKSPACE:-/workspace}" && exec emacs -nw'
+exec_dev bash -lc '
+  set -euo pipefail
+  cd "${PROJECT_WORKSPACE:-/workspace}"
+  source "${PROJECT_WORKSPACE:-/workspace}/scripts/load-runtime-env.sh"
+  load_runtime_env
+  exec emacs -nw
+'
