@@ -56,7 +56,8 @@ This creates:
 Optional values:
 - `COMPOSE_PROJECT_NAME`
 - `HOST_COMMON_HOME`
-- `HOST_OPENCODE_DIR` (set per repo/container to avoid state collisions)
+- `HOST_OPENCODE_SHARE_DIR` (recommended shared path, usually `~/.local/share/opencode`)
+- `HOST_OPENCODE_STATE_DIR` (recommended per-project path, e.g. `~/.local/state/opencode-projects/<repo>`)
 - `HOST_SSH_DIR` (host SSH directory mounted read-only to `~/.ssh` in container)
 - `OPENCODE_MODEL` (repo default model; falls back to `$HOST_COMMON_HOME/.opencode-common.env`)
 - cache/state overrides
@@ -100,7 +101,12 @@ If you want stronger isolation between concurrent repo containers, run:
 dev-bootstrap-opencode.sh
 ```
 
-This seeds repo-specific defaults for `HOST_OPENCODE_DIR` and `HOST_COMMON_HOME` in `.devcontainer/.env` (only when missing).
+This seeds defaults for:
+- shared OpenCode data/auth: `HOST_OPENCODE_SHARE_DIR=$HOME/.local/share/opencode`
+- per-repo OpenCode state: `HOST_OPENCODE_STATE_DIR=$HOME/.local/state/opencode-projects/<repo>`
+- repo common home: `HOST_COMMON_HOME=$HOME/.opencode-common-home-<repo>`
+
+Values are only written when missing in `.devcontainer/.env`.
 7. Inspect status / stop container:
 
 ```bash
@@ -140,7 +146,7 @@ Emacs Customize writes to `~/.emacs.d/init.local.el` (`custom-file`), keeping re
 ## Script reference (brief)
 
 - `dev-init.sh`: create `<repo>/.devcontainer` scaffolding and `.env` template.
-- `dev-bootstrap-opencode.sh`: seed repo-specific `HOST_OPENCODE_DIR` and `HOST_COMMON_HOME` defaults (without overriding existing values).
+- `dev-bootstrap-opencode.sh`: seed OpenCode share/state defaults and `HOST_COMMON_HOME` (without overriding existing values).
 - `dev-up.sh`: bootstrap common home, generate runtime env/secrets, build/start container.
 - `dev-shell.sh`: interactive shell in running container (auto-start if needed).
 - `dev-emacs.sh`: launch Emacs in terminal or GUI mode.
@@ -185,6 +191,15 @@ Model default precedence is:
 3. OpenCode built-in default
 
 You can also place additional OpenCode env defaults in `<repo>/.devcontainer/opencode.env` (repo-specific) or `~/.opencode-common.env` (common-home) for container runtime wrappers.
+
+### Recommended OpenCode persistence layout
+
+- Shared across all repos/containers:
+  - `HOST_OPENCODE_SHARE_DIR=~/.local/share/opencode`
+  - Contains auth and persistent OpenCode data.
+- Per-repo (persistent but isolated):
+  - `HOST_OPENCODE_STATE_DIR=~/.local/state/opencode-projects/<repo>`
+  - Keeps model/history/state easy to inspect later without cross-project collisions.
 
 
 ## Troubleshooting
