@@ -9,7 +9,6 @@ PROJECT_ENV_FILE="$REPO_ROOT/.devcontainer/.env"
 
 repo_name="$(basename "$REPO_ROOT")"
 default_share_dir="$HOME/.local/share/opencode"
-default_state_dir="$REPO_ROOT/.devcontainer/.runtime/opencode-state"
 default_common_home="$HOME/.opencode-common-home-$repo_name"
 
 tmp_file="$(mktemp)"
@@ -27,7 +26,6 @@ append_if_missing() {
 }
 
 append_if_missing "HOST_OPENCODE_SHARE_DIR" "$default_share_dir"
-append_if_missing "HOST_OPENCODE_STATE_DIR" "$default_state_dir"
 append_if_missing "HOST_COMMON_HOME" "$default_common_home"
 
 mv "$tmp_file" "$PROJECT_ENV_FILE"

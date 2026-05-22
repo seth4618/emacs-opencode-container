@@ -28,12 +28,12 @@ services:
       HOST_REPO_PATH: ${HOST_REPO_PATH}
       WORKSPACE_DIRNAME: ${WORKSPACE_DIRNAME}
       CONTAINER_PROMPT_PREFIX: C
-      OPENCODE_HOME: /opencode-state
+      OPENCODE_HOME: /workspace/${WORKSPACE_DIRNAME}/.devcontainer/.runtime/opencode-state
       OPENCODE_CONFIG_DIR: /opencode-share
       OPENCODE_AUTH_DIR: /opencode-share
-      OPENCODE_STATE_DIR: /opencode-state
-      XDG_DATA_HOME: /opencode-share
-      XDG_STATE_HOME: /opencode-state
+      OPENCODE_STATE_DIR: /workspace/${WORKSPACE_DIRNAME}/.devcontainer/.runtime/opencode-state
+      XDG_DATA_HOME: /workspace/${WORKSPACE_DIRNAME}/.devcontainer/.runtime/opencode-state
+      XDG_STATE_HOME: /workspace/${WORKSPACE_DIRNAME}/.devcontainer/.runtime/opencode-state
       OPENCODE_MODEL: ${OPENCODE_MODEL:-}
       NPM_CONFIG_CACHE: /cache/npm
       PNPM_HOME: /cache/pnpm
@@ -53,9 +53,6 @@ services:
       - type: bind
         source: ${HOST_OPENCODE_SHARE_DIR}
         target: /opencode-share
-      - type: bind
-        source: ${HOST_OPENCODE_STATE_DIR}
-        target: /opencode-state
       - type: bind
         source: ${HOST_COMMON_HOME}/.emacs.d
         target: /home/${CONTAINER_USER:-dev}/.emacs.d
