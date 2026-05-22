@@ -129,6 +129,8 @@ When you run `dev-up.sh`, it:
 
 Secrets are materialized into `<repo>/.devcontainer/.runtime/secrets` as real files/directories during `dev-up.sh` (not host-path symlinks), then mounted at `/secrets` in the container. Re-run `dev-up.sh` after changing `secrets-paths.txt` entries or secret file contents.
 
+Runtime wrappers (`run-opencode.sh`, `start-terminal-emacs.sh`, `start-gui-emacs.sh`, and `enter-shell.sh`) source `/usr/local/bin/load-runtime-env` in-container, which only reads `/secrets/*.env`. During `dev-up.sh`, secret files copied from `secrets-paths.txt` are renamed with a numeric prefix plus `.env` suffix so they are sourced deterministically by sort order. Non-`.env` files present directly under `/secrets` are ignored and logged as warnings.
+
 ## Common home behavior (`HOST_COMMON_HOME`)
 
 `setup-common-home.sh` creates/refreshes:
