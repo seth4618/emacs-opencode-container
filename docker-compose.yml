@@ -27,7 +27,6 @@ services:
       GDK_BACKEND: wayland
       HOST_REPO_PATH: ${HOST_REPO_PATH}
       WORKSPACE_DIRNAME: ${WORKSPACE_DIRNAME}
-      CONTAINER_PROMPT_PREFIX: C
       OPENCODE_HOME: /workspace/${WORKSPACE_DIRNAME}/.devcontainer/.runtime/opencode-state
       OPENCODE_CONFIG_DIR: /opencode-config
       OPENCODE_AUTH_DIR: /opencode-share
