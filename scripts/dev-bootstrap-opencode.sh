@@ -7,9 +7,8 @@ PROJECT_ENV_FILE="$REPO_ROOT/.devcontainer/.env"
 
 "$(dirname "$0")/dev-init.sh" >/dev/null
 
-repo_name="$(basename "$REPO_ROOT")"
 default_share_dir="$HOME/.local/share/opencode"
-default_common_home="$HOME/.opencode-common-home-$repo_name"
+default_common_home="$HOME/.opencode-common-home"
 
 tmp_file="$(mktemp)"
 cp "$PROJECT_ENV_FILE" "$tmp_file"

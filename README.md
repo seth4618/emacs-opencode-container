@@ -102,7 +102,7 @@ dev-bootstrap-opencode.sh
 
 This seeds defaults for:
 - shared OpenCode data/auth: `HOST_OPENCODE_SHARE_DIR=$HOME/.local/share/opencode`
-- repo common home: `HOST_COMMON_HOME=$HOME/.opencode-common-home-<repo>`
+- common home: `HOST_COMMON_HOME=$HOME/.opencode-common-home`
 
 Values are only written when missing in `.devcontainer/.env`.
 
@@ -146,7 +146,7 @@ Emacs Customize writes to `~/.emacs.d/init.local.el` (`custom-file`), keeping re
 ## Script reference (brief)
 
 - `dev-init.sh`: create `<repo>/.devcontainer` scaffolding and `.env` template.
-- `dev-bootstrap-opencode.sh`: seed OpenCode share/state defaults and `HOST_COMMON_HOME` (without overriding existing values).
+- `dev-bootstrap-opencode.sh`: seed OpenCode share defaults and `HOST_COMMON_HOME` (without overriding existing values).
 - `dev-up.sh`: bootstrap common home, generate runtime env/secrets, build/start container.
 - `dev-shell.sh`: interactive shell in running container (auto-start if needed).
 - `dev-emacs.sh`: launch Emacs in terminal or GUI mode.
