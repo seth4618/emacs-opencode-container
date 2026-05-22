@@ -2,14 +2,8 @@
 set -euo pipefail
 
 if [[ "${1:-}" == "push" ]]; then
-  remote="${2:-origin}"
-  if [[ "$remote" == -* ]]; then
-    remote="origin"
-  fi
-  if [[ "$remote" == "origin" ]]; then
-    echo "Blocked: git push to remote 'origin' is disabled in this container." >&2
-    exit 1
-  fi
+  echo "Blocked: git push is disabled in this container." >&2
+  exit 1
 fi
 
 exec /usr/bin/git "$@"
