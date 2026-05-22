@@ -7,9 +7,9 @@ PROJECT_ENV_FILE="$REPO_ROOT/.devcontainer/.env"
 
 "$(dirname "$0")/dev-init.sh" >/dev/null
 
-repo_name="$(basename "$REPO_ROOT")"
-default_state_dir="$HOME/.local/share/opencode-$repo_name"
-default_common_home="$HOME/.opencode-common-home-$repo_name"
+default_share_dir="$HOME/.local/share/opencode"
+default_config_dir="$HOME/.config/opencode"
+default_common_home="$HOME/.opencode-common-home"
 
 tmp_file="$(mktemp)"
 cp "$PROJECT_ENV_FILE" "$tmp_file"
@@ -25,7 +25,8 @@ append_if_missing() {
   fi
 }
 
-append_if_missing "HOST_OPENCODE_DIR" "$default_state_dir"
+append_if_missing "HOST_OPENCODE_SHARE_DIR" "$default_share_dir"
+append_if_missing "HOST_OPENCODE_CONFIG_DIR" "$default_config_dir"
 append_if_missing "HOST_COMMON_HOME" "$default_common_home"
 
 mv "$tmp_file" "$PROJECT_ENV_FILE"

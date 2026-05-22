@@ -56,7 +56,8 @@ This creates:
 Optional values:
 - `COMPOSE_PROJECT_NAME`
 - `HOST_COMMON_HOME`
-- `HOST_OPENCODE_DIR` (set per repo/container to avoid state collisions)
+- `HOST_OPENCODE_SHARE_DIR` (recommended shared path, usually `~/.local/share/opencode`)
+- `HOST_OPENCODE_CONFIG_DIR` (recommended shared config path, usually `~/.config/opencode`)
 - `HOST_SSH_DIR` (host SSH directory mounted read-only to `~/.ssh` in container)
 - `OPENCODE_MODEL` (repo default model; falls back to `$HOST_COMMON_HOME/.opencode-common.env`)
 - cache/state overrides
@@ -100,7 +101,14 @@ If you want stronger isolation between concurrent repo containers, run:
 dev-bootstrap-opencode.sh
 ```
 
-This seeds repo-specific defaults for `HOST_OPENCODE_DIR` and `HOST_COMMON_HOME` in `.devcontainer/.env` (only when missing).
+This seeds defaults for:
+- shared OpenCode data/auth: `HOST_OPENCODE_SHARE_DIR=$HOME/.local/share/opencode`
+- shared OpenCode config: `HOST_OPENCODE_CONFIG_DIR=$HOME/.config/opencode`
+- common home: `HOST_COMMON_HOME=$HOME/.opencode-common-home`
+
+Values are only written when missing in `.devcontainer/.env`.
+
+Note: `HOST_OPENCODE_DIR` is deprecated. Use `HOST_OPENCODE_SHARE_DIR` and `HOST_OPENCODE_CONFIG_DIR`.
 7. Inspect status / stop container:
 
 ```bash
@@ -140,7 +148,7 @@ Emacs Customize writes to `~/.emacs.d/init.local.el` (`custom-file`), keeping re
 ## Script reference (brief)
 
 - `dev-init.sh`: create `<repo>/.devcontainer` scaffolding and `.env` template.
-- `dev-bootstrap-opencode.sh`: seed repo-specific `HOST_OPENCODE_DIR` and `HOST_COMMON_HOME` defaults (without overriding existing values).
+- `dev-bootstrap-opencode.sh`: seed OpenCode share defaults and `HOST_COMMON_HOME` (without overriding existing values).
 - `dev-up.sh`: bootstrap common home, generate runtime env/secrets, build/start container.
 - `dev-shell.sh`: interactive shell in running container (auto-start if needed).
 - `dev-emacs.sh`: launch Emacs in terminal or GUI mode.
@@ -186,7 +194,114 @@ Model default precedence is:
 
 You can also place additional OpenCode env defaults in `<repo>/.devcontainer/opencode.env` (repo-specific) or `~/.opencode-common.env` (common-home) for container runtime wrappers.
 
+### Recommended OpenCode persistence layout
+
+- Shared across all repos/containers:
+  - `HOST_OPENCODE_SHARE_DIR=~/.local/share/opencode`
+  - Contains shared auth/data (including `auth.json`).
+  - `HOST_OPENCODE_CONFIG_DIR=~/.config/opencode`
+  - Contains shared config (including `opencode.jsonc`).
+- Per-repo (persistent but isolated):
+  - `<repo>/.devcontainer/.runtime/opencode-state` (automatic default; no extra env needed)
+  - Contains runtime OpenCode home/state (DB, logs, history) to avoid cross-project collisions.
+
+Implementation note: container env points `OPENCODE_HOME`, `OPENCODE_STATE_DIR`, `XDG_STATE_HOME`, and `XDG_DATA_HOME` to this repo-local runtime path so OpenCode runtime DB/state does not drift back into the shared directory.
+
 
 ## Troubleshooting
 
 - If `dev-opencode.sh` prints `opencode command not found`, rebuild the container image after setting `OPENCODE_NPM_PACKAGE` in `<repo>/.devcontainer/.env` and run `dev-up.sh` again.
+
+## Using OpenAI models with OpenCode (Step-by-step)
+
+This section assumes you want:
+- shared OpenAI auth/config across repos, and
+- per-repo runtime state in `<repo>/.devcontainer/.runtime/opencode-state`.
+
+### 1) Confirm OpenCode is installed where you will run setup
+
+If `opencode --version` fails on your host, install it first (host-side):
+
+```bash
+npm install -g opencode-ai
+```
+
+Then verify:
+
+```bash
+opencode --version
+```
+
+You can still run OpenCode inside this dev container via `dev-opencode.sh`, but for OAuth plugin setup it is often easiest to run the initial login on the host first.
+
+### 2) Ensure repo/container env defaults are in place
+
+From your project repo:
+
+```bash
+dev-init.sh
+dev-bootstrap-opencode.sh
+```
+
+Then check `<repo>/.devcontainer/.env` includes:
+- `HOST_OPENCODE_SHARE_DIR` (shared auth/config; typically `~/.local/share/opencode`)
+- no per-repo state env is required (repo-local state is automatic via compose env)
+
+### 3) Sign in with native OpenCode OAuth (host recommended)
+
+Run OpenCode and sign in to OpenAI via the built-in auth flow:
+
+```bash
+opencode
+```
+
+This should open a browser for official OAuth login and write/update:
+- `~/.local/share/opencode/auth.json`
+- `~/.config/opencode/opencode.jsonc`
+
+### 4) Add/verify model defaults in OpenCode config
+
+Edit your OpenCode config (usually under `~/.config/opencode/`) and set desired defaults, for example:
+
+```json
+{
+  "model": "openai/gpt-5.4",
+  "provider": {
+    "openai": {
+      "models": {
+        "gpt-5.4": {
+          "options": {
+            "reasoningEffort": "medium",
+            "textVerbosity": "low"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+Use GPT-5.4 first to validate setup. After it works, you can test GPT-5.5 by changing model IDs in the same structure if available in your plugin/account path.
+
+### 5) Restart container and verify end-to-end
+
+```bash
+dev-down.sh
+dev-up.sh
+dev-opencode.sh
+```
+
+Inside container, confirm paths:
+
+```bash
+echo "$OPENCODE_HOME"
+echo "$OPENCODE_AUTH_DIR"
+```
+
+Expected:
+- `OPENCODE_HOME` points to repo-local runtime state under `/workspace/.../.devcontainer/.runtime/opencode-state`
+- `OPENCODE_AUTH_DIR` points to `/opencode-share`
+
+### 6) If browser OAuth cannot run from container
+
+Do OAuth once on the host (Step 3), then restart the container. Because auth (`~/.local/share/opencode`) and config (`~/.config/opencode`) are both shared host mounts, containers in other repos should pick it up automatically.
