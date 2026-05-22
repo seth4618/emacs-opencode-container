@@ -41,8 +41,9 @@ RUN npm install -g \
     "$OPENCODE_NPM_PACKAGE"
 
 COPY docker/entrypoint.sh /usr/local/bin/container-entrypoint
+COPY docker/load-runtime-env.sh /usr/local/bin/load-runtime-env
 COPY docker/git-safe /usr/local/bin/git
-RUN chmod +x /usr/local/bin/container-entrypoint /usr/local/bin/git
+RUN chmod +x /usr/local/bin/container-entrypoint /usr/local/bin/load-runtime-env /usr/local/bin/git
 
 USER ${USERNAME}
 WORKDIR /workspace
