@@ -2,7 +2,11 @@
 set -euo pipefail
 source "$(dirname "$0")/_common.sh"
 
-"$(dirname "$0")/dev-init.sh" >/dev/null
+echo "Running dev-init.sh..."
+if ! "$(dirname "$0")/dev-init.sh"; then
+  echo "dev-init.sh failed; aborting dev-up." >&2
+  exit 1
+fi
 
 load_context
 SECRETS_LIST_FILE="${SECRETS_PATHS_FILE:-$REPO_ROOT/secrets-paths.txt}"
