@@ -207,3 +207,101 @@ Implementation note: container env points `OPENCODE_HOME`, `OPENCODE_STATE_DIR`,
 ## Troubleshooting
 
 - If `dev-opencode.sh` prints `opencode command not found`, rebuild the container image after setting `OPENCODE_NPM_PACKAGE` in `<repo>/.devcontainer/.env` and run `dev-up.sh` again.
+
+## Using OpenAI models with OpenCode (Step-by-step)
+
+This section assumes you want:
+- shared OpenAI auth/config across repos, and
+- per-repo runtime state in `<repo>/.devcontainer/.runtime/opencode-state`.
+
+### 1) Confirm OpenCode is installed where you will run setup
+
+If `opencode --version` fails on your host, install it first (host-side):
+
+```bash
+npm install -g opencode-ai
+```
+
+Then verify:
+
+```bash
+opencode --version
+```
+
+You can still run OpenCode inside this dev container via `dev-opencode.sh`, but for OAuth plugin setup it is often easiest to run the initial login on the host first.
+
+### 2) Ensure repo/container env defaults are in place
+
+From your project repo:
+
+```bash
+dev-init.sh
+dev-bootstrap-opencode.sh
+```
+
+Then check `<repo>/.devcontainer/.env` includes:
+- `HOST_OPENCODE_SHARE_DIR` (shared auth/config; typically `~/.local/share/opencode`)
+- no per-repo state env is required (repo-local state is automatic via compose env)
+
+### 3) Install/configure OAuth bridge plugin (host recommended)
+
+Run:
+
+```bash
+npx -y opencode-openai-codex-auth@latest
+```
+
+If plugin docs indicate legacy mode for your OpenCode version:
+
+```bash
+npx -y opencode-openai-codex-auth@latest --legacy
+```
+
+This flow should open a browser for official OAuth login and write/update your OpenCode config.
+
+### 4) Add/verify model defaults in OpenCode config
+
+Edit your OpenCode config (usually under `~/.config/opencode/`) and set desired defaults, for example:
+
+```json
+{
+  "model": "openai/gpt-5.4",
+  "provider": {
+    "openai": {
+      "models": {
+        "gpt-5.4": {
+          "options": {
+            "reasoningEffort": "medium",
+            "textVerbosity": "low"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+Use GPT-5.4 first to validate setup. After it works, you can test GPT-5.5 by changing model IDs in the same structure if available in your plugin/account path.
+
+### 5) Restart container and verify end-to-end
+
+```bash
+dev-down.sh
+dev-up.sh
+dev-opencode.sh
+```
+
+Inside container, confirm paths:
+
+```bash
+echo "$OPENCODE_HOME"
+echo "$OPENCODE_AUTH_DIR"
+```
+
+Expected:
+- `OPENCODE_HOME` points to repo-local runtime state under `/workspace/.../.devcontainer/.runtime/opencode-state`
+- `OPENCODE_AUTH_DIR` points to `/opencode-share`
+
+### 6) If browser OAuth cannot run from container
+
+Do OAuth once on the host (Step 3), then restart the container. Because auth/config is on shared host storage, the container should pick it up automatically.
