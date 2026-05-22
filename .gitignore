@@ -8,3 +8,6 @@ secrets-paths.txt
 # container-local dependencies
 sample/typescript/node_modules/
 sample/solidity/node_modules/
+
+# cloned elisp helper repos
+elisp-helpers/opencode.el/

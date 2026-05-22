@@ -42,7 +42,9 @@ RUN npm install -g \
 
 COPY docker/entrypoint.sh /usr/local/bin/container-entrypoint
 COPY docker/git-safe /usr/local/bin/git
-RUN chmod +x /usr/local/bin/container-entrypoint /usr/local/bin/git
+COPY elisp-helpers/opencode.el /opt/elisp-helpers/opencode.el
+RUN chmod +x /usr/local/bin/container-entrypoint /usr/local/bin/git \
+    && chown -R ${USER_UID}:${USER_GID} /opt/elisp-helpers
 
 USER ${USERNAME}
 WORKDIR /workspace

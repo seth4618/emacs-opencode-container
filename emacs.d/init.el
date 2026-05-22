@@ -7,7 +7,7 @@
 (unless package-archive-contents
   (package-refresh-contents))
 
-(dolist (pkg '(use-package lsp-mode lsp-pyright magit gptel typescript-mode json-mode solidity-mode company yasnippet))
+(dolist (pkg '(use-package lsp-mode lsp-pyright magit gptel typescript-mode json-mode solidity-mode company yasnippet markdown-mode plz plz-media-type plz-event-source))
   (unless (package-installed-p pkg)
     (package-install pkg)))
 
@@ -79,6 +79,21 @@
 
 (use-package magit :commands magit-status)
 (use-package gptel :commands gptel)
+
+
+;; Load opencode.el following README.org Manual installation pattern:
+;;   (add-to-list 'load-path "/path/to/opencode.el")
+;;   (require 'opencode)
+(let* ((container-opencode-dir "/opt/elisp-helpers/opencode.el")
+       (repo-opencode-dir (expand-file-name "elisp-helpers/opencode.el"
+                                            (file-name-directory (directory-file-name default-directory))))
+       (opencode-dir (cond
+                      ((file-directory-p container-opencode-dir) container-opencode-dir)
+                      ((file-directory-p repo-opencode-dir) repo-opencode-dir)
+                      (t nil))))
+  (when opencode-dir
+    (add-to-list 'load-path opencode-dir)
+    (require 'opencode)))
 
 ;; Bootstraps local overrides without editing this file.
 (let ((local-init-dir (expand-file-name "local-init.d" user-emacs-directory)))
