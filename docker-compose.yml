@@ -29,7 +29,7 @@ services:
       WORKSPACE_DIRNAME: ${WORKSPACE_DIRNAME}
       CONTAINER_PROMPT_PREFIX: C
       OPENCODE_HOME: /workspace/${WORKSPACE_DIRNAME}/.devcontainer/.runtime/opencode-state
-      OPENCODE_CONFIG_DIR: /opencode-share
+      OPENCODE_CONFIG_DIR: /opencode-config
       OPENCODE_AUTH_DIR: /opencode-share
       OPENCODE_STATE_DIR: /workspace/${WORKSPACE_DIRNAME}/.devcontainer/.runtime/opencode-state
       XDG_DATA_HOME: /workspace/${WORKSPACE_DIRNAME}/.devcontainer/.runtime/opencode-state
@@ -53,6 +53,9 @@ services:
       - type: bind
         source: ${HOST_OPENCODE_SHARE_DIR}
         target: /opencode-share
+      - type: bind
+        source: ${HOST_OPENCODE_CONFIG_DIR}
+        target: /opencode-config
       - type: bind
         source: ${HOST_COMMON_HOME}/.emacs.d
         target: /home/${CONTAINER_USER:-dev}/.emacs.d

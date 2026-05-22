@@ -19,6 +19,7 @@ WAYLAND_SOCKET_PATH=/run/user/$(id -u)/wayland-0
 COMPOSE_PROJECT_NAME=$(basename "$REPO_ROOT")-dev
 # HOST_COMMON_HOME=$HOME/.opencode-common-home
 # HOST_OPENCODE_SHARE_DIR=$HOME/.local/share/opencode
+# HOST_OPENCODE_CONFIG_DIR=$HOME/.config/opencode
 # HOST_SSH_DIR=$HOME/.ssh
 # OPENCODE_MODEL=gpt-5
 ENV

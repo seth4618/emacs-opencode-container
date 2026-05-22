@@ -57,6 +57,7 @@ Optional values:
 - `COMPOSE_PROJECT_NAME`
 - `HOST_COMMON_HOME`
 - `HOST_OPENCODE_SHARE_DIR` (recommended shared path, usually `~/.local/share/opencode`)
+- `HOST_OPENCODE_CONFIG_DIR` (recommended shared config path, usually `~/.config/opencode`)
 - `HOST_SSH_DIR` (host SSH directory mounted read-only to `~/.ssh` in container)
 - `OPENCODE_MODEL` (repo default model; falls back to `$HOST_COMMON_HOME/.opencode-common.env`)
 - cache/state overrides
@@ -102,11 +103,12 @@ dev-bootstrap-opencode.sh
 
 This seeds defaults for:
 - shared OpenCode data/auth: `HOST_OPENCODE_SHARE_DIR=$HOME/.local/share/opencode`
+- shared OpenCode config: `HOST_OPENCODE_CONFIG_DIR=$HOME/.config/opencode`
 - common home: `HOST_COMMON_HOME=$HOME/.opencode-common-home`
 
 Values are only written when missing in `.devcontainer/.env`.
 
-Note: `HOST_OPENCODE_DIR` is deprecated. Use `HOST_OPENCODE_SHARE_DIR`.
+Note: `HOST_OPENCODE_DIR` is deprecated. Use `HOST_OPENCODE_SHARE_DIR` and `HOST_OPENCODE_CONFIG_DIR`.
 7. Inspect status / stop container:
 
 ```bash
@@ -196,7 +198,9 @@ You can also place additional OpenCode env defaults in `<repo>/.devcontainer/ope
 
 - Shared across all repos/containers:
   - `HOST_OPENCODE_SHARE_DIR=~/.local/share/opencode`
-  - Contains shared auth/config.
+  - Contains shared auth/data (including `auth.json`).
+  - `HOST_OPENCODE_CONFIG_DIR=~/.config/opencode`
+  - Contains shared config (including `opencode.jsonc`).
 - Per-repo (persistent but isolated):
   - `<repo>/.devcontainer/.runtime/opencode-state` (automatic default; no extra env needed)
   - Contains runtime OpenCode home/state (DB, logs, history) to avoid cross-project collisions.
@@ -243,21 +247,17 @@ Then check `<repo>/.devcontainer/.env` includes:
 - `HOST_OPENCODE_SHARE_DIR` (shared auth/config; typically `~/.local/share/opencode`)
 - no per-repo state env is required (repo-local state is automatic via compose env)
 
-### 3) Install/configure OAuth bridge plugin (host recommended)
+### 3) Sign in with native OpenCode OAuth (host recommended)
 
-Run:
-
-```bash
-npx -y opencode-openai-codex-auth@latest
-```
-
-If plugin docs indicate legacy mode for your OpenCode version:
+Run OpenCode and sign in to OpenAI via the built-in auth flow:
 
 ```bash
-npx -y opencode-openai-codex-auth@latest --legacy
+opencode
 ```
 
-This flow should open a browser for official OAuth login and write/update your OpenCode config.
+This should open a browser for official OAuth login and write/update:
+- `~/.local/share/opencode/auth.json`
+- `~/.config/opencode/opencode.jsonc`
 
 ### 4) Add/verify model defaults in OpenCode config
 
@@ -304,4 +304,4 @@ Expected:
 
 ### 6) If browser OAuth cannot run from container
 
-Do OAuth once on the host (Step 3), then restart the container. Because auth/config is on shared host storage, the container should pick it up automatically.
+Do OAuth once on the host (Step 3), then restart the container. Because auth (`~/.local/share/opencode`) and config (`~/.config/opencode`) are both shared host mounts, containers in other repos should pick it up automatically.
