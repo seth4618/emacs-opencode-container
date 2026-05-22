@@ -107,6 +107,8 @@ This seeds defaults for:
 - repo common home: `HOST_COMMON_HOME=$HOME/.opencode-common-home-<repo>`
 
 Values are only written when missing in `.devcontainer/.env`.
+
+Note: `HOST_OPENCODE_DIR` is deprecated. Use `HOST_OPENCODE_SHARE_DIR` and `HOST_OPENCODE_STATE_DIR`.
 7. Inspect status / stop container:
 
 ```bash

@@ -15,7 +15,8 @@ HOST_UID="${HOST_UID:-$(id -u)}"
 HOST_GID="${HOST_GID:-$(id -g)}"
 WORKSPACE_DIRNAME="${WORKSPACE_DIRNAME:-$(basename "$HOST_REPO_PATH")}" 
 HOST_HOME="${HOST_HOME:-$HOME}"
-HOST_OPENCODE_SHARE_DIR="${HOST_OPENCODE_SHARE_DIR:-${HOST_OPENCODE_DIR:-$HOST_HOME/.local/share/opencode}}"
+HOST_OPENCODE_SHARE_DIR_SET="${HOST_OPENCODE_SHARE_DIR:-}"
+HOST_OPENCODE_SHARE_DIR="${HOST_OPENCODE_SHARE_DIR:-$HOST_HOME/.local/share/opencode}"
 HOST_OPENCODE_STATE_DIR="${HOST_OPENCODE_STATE_DIR:-$HOST_HOME/.local/state/opencode-projects/$WORKSPACE_DIRNAME}"
 HOST_CACHE_DIR="${HOST_CACHE_DIR:-$HOST_HOME/.cache}"
 HOST_NPM_CACHE_DIR="${HOST_NPM_CACHE_DIR:-$HOST_HOME/.npm}"
@@ -25,6 +26,9 @@ HOST_PIP_CACHE_DIR="${HOST_PIP_CACHE_DIR:-$HOST_HOME/.cache/pip}"
 HOST_COMMON_HOME="${HOST_COMMON_HOME:-$HOST_HOME/.opencode-common-home}"
 HOST_SECRETS_BUNDLE_DIR="${HOST_SECRETS_BUNDLE_DIR:-$PROJECT_RUNTIME_DIR/secrets}"
 HOST_SSH_DIR="${HOST_SSH_DIR:-$HOST_HOME/.ssh}"
+if [[ -n "${HOST_OPENCODE_DIR:-}" && -z "$HOST_OPENCODE_SHARE_DIR_SET" ]]; then
+  echo "warning: HOST_OPENCODE_DIR is deprecated and ignored; set HOST_OPENCODE_SHARE_DIR instead."
+fi
 
 # Resolve default model precedence: repo .env value wins; otherwise fallback to common-home.
 if [[ -z "${OPENCODE_MODEL:-}" ]]; then
