@@ -57,12 +57,9 @@ fi
 # the same OAuth tokens.
 PROJECT_OPENCODE_AUTH_LINK_DIR="$PROJECT_OPENCODE_STATE_DIR/opencode"
 PROJECT_OPENCODE_AUTH_LINK="$PROJECT_OPENCODE_AUTH_LINK_DIR/auth.json"
-PROJECT_OPENCODE_AUTH_ROOT_LINK="$PROJECT_OPENCODE_STATE_DIR/auth.json"
 mkdir -p "$PROJECT_OPENCODE_AUTH_LINK_DIR"
 rm -f "$PROJECT_OPENCODE_AUTH_LINK"
-rm -f "$PROJECT_OPENCODE_AUTH_ROOT_LINK"
 ln -s /opencode-share/auth.json "$PROJECT_OPENCODE_AUTH_LINK"
-ln -s /opencode-share/auth.json "$PROJECT_OPENCODE_AUTH_ROOT_LINK"
 
 find "$PROJECT_RUNTIME_DIR/secrets" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
 if [[ -f "$SECRETS_LIST_FILE" ]]; then
