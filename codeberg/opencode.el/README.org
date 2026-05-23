@@ -244,3 +244,12 @@ from the shared folder.
 - the =opencode-faces= group configures faces used when displaying sessions
 - =opencode-toast-function= is used to show toast notifications
 - =opencode-file-edited-functions= is a hook run after edit tool calls
+- OpenCode OAuth (stored in =auth.json= via =OPENCODE_AUTH_DIR=) is separate
+  from OpenAI provider authentication. If you choose model
+  =openai/<model-name>= (for example =openai/gpt-5.4=), OpenCode expects a real
+  OpenAI API key in =OPENAI_API_KEY=.
+- Do not set =OPENAI_API_KEY= to the auth file path. The OpenAI provider treats
+  =OPENAI_API_KEY= as a literal API key string and requests fail with
+  "Incorrect API key provided".
+- If =OPENAI_API_KEY= is unset while using an =openai/*= model, requests fail
+  with an error such as "AI_LoadAPIKeyError" / "OpenAI API key is missing".
