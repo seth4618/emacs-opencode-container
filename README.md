@@ -129,6 +129,8 @@ When you run `dev-up.sh`, it:
 
 Secrets are materialized into `<repo>/.devcontainer/.runtime/secrets` as real files/directories during `dev-up.sh` (not host-path symlinks), then mounted at `/secrets` in the container. Re-run `dev-up.sh` after changing `secrets-paths.txt` entries or secret file contents.
 
+Runtime wrappers (`run-opencode.sh`, `start-terminal-emacs.sh`, `start-gui-emacs.sh`, and `enter-shell.sh`) source `/usr/local/bin/load-runtime-env` in-container, which only reads `/secrets/*.env`. During `dev-up.sh`, secret paths copied from `secrets-paths.txt` are renamed with a numeric prefix for deterministic ordering. Only files that already end in `.env` are sourced; non-`.env` files present directly under `/secrets` are ignored and logged as warnings.
+
 ## Common home behavior (`HOST_COMMON_HOME`)
 
 `setup-common-home.sh` creates/refreshes:
@@ -308,3 +310,15 @@ Container entrypoint also sources `/secrets/*.env`, `~/.opencode-common.env`, an
 ### 6) If browser OAuth cannot run from container
 
 Do OAuth once on the host (Step 3), then restart the container. Because auth (`~/.local/share/opencode`) and config (`~/.config/opencode`) are both shared host mounts, containers in other repos should pick it up automatically.
+
+# to auth with openai from within container
+
+- you need to edit docker-compose.yml to allow port 1455, e.g.,  add the `ports:\n- "1455:1455"` line after init: and before security_opt: so it looks like:
+  ```
+      init: true
+      ports:
+        - "1455:1455"
+      security_opt:
+        - no-new-privileges:true
+  ```
+- then start opencode and do auth (browser).

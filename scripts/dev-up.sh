@@ -59,16 +59,25 @@ if [[ ! -d "$HOST_SSH_DIR" ]]; then
 fi
 "$TOOL_HOME/scripts/setup-common-home.sh" "$HOST_COMMON_HOME" "/workspace/$WORKSPACE_DIRNAME" >/dev/null
 
+# Keep OpenCode auth in one canonical shared location so host and container use
+# the same OAuth tokens.
+PROJECT_OPENCODE_AUTH_LINK_DIR="$PROJECT_OPENCODE_STATE_DIR/opencode"
+PROJECT_OPENCODE_AUTH_LINK="$PROJECT_OPENCODE_AUTH_LINK_DIR/auth.json"
+mkdir -p "$PROJECT_OPENCODE_AUTH_LINK_DIR"
+rm -f "$PROJECT_OPENCODE_AUTH_LINK"
+ln -s /opencode-share/auth.json "$PROJECT_OPENCODE_AUTH_LINK"
+
 find "$PROJECT_RUNTIME_DIR/secrets" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
 if [[ -f "$SECRETS_LIST_FILE" ]]; then
   i=0
   while IFS= read -r path; do
     [[ -z "$path" || "$path" =~ ^# ]] && continue
     if [[ -e "$path" ]]; then
-      target="$PROJECT_RUNTIME_DIR/secrets/$(printf '%03d' "$i")-$(basename "$path")"
       if [[ -d "$path" ]]; then
+        target="$PROJECT_RUNTIME_DIR/secrets/$(printf '%03d' "$i")-$(basename "$path")"
         cp -a "$path" "$target"
       else
+        target="$PROJECT_RUNTIME_DIR/secrets/$(printf '%03d' "$i")-$(basename "$path")"
         cp -aL "$path" "$target"
       fi
       i=$((i + 1))
