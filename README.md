@@ -303,6 +303,7 @@ Expected:
 - `OPENCODE_AUTH_DIR` points to `/opencode-share`
 
 Container entrypoint links shared auth/config into `OPENCODE_HOME` (`auth.json` and `opencode.jsonc`) so running `opencode` directly from an interactive shell resolves credentials consistently.
+Container entrypoint also sources `/secrets/*.env`, `~/.opencode-common.env`, and `<repo>/.devcontainer/opencode.env` so provider API keys are exported for direct shell usage.
 
 ### 6) If browser OAuth cannot run from container
 

@@ -12,6 +12,36 @@ else
   export PROJECT_WORKSPACE="/workspace"
 fi
 
+
+# Load OpenCode-related env defaults for interactive shells and direct `opencode`.
+if [[ -d /secrets ]]; then
+  shopt -s nullglob
+  for secrets_file in /secrets/*.env; do
+    set -a
+    # shellcheck disable=SC1090
+    source "$secrets_file"
+    set +a
+  done
+  shopt -u nullglob
+fi
+
+common_opencode_env="$HOME/.opencode-common.env"
+repo_opencode_env="${PROJECT_WORKSPACE}/.devcontainer/opencode.env"
+
+if [[ -f "$common_opencode_env" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "$common_opencode_env"
+  set +a
+fi
+
+if [[ -f "$repo_opencode_env" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "$repo_opencode_env"
+  set +a
+fi
+
 # Wayland clients require XDG_RUNTIME_DIR to be a user-owned 0700 directory.
 # Keep this stable inside the container so `emacs` (without wrapper scripts)
 # can start as a GUI app.
