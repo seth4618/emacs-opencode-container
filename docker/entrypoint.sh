@@ -30,4 +30,18 @@ if [[ -n "${XDG_RUNTIME_DIR:-}" && -n "${WAYLAND_DISPLAY:-}" ]]; then
   fi
 fi
 
+
+# Make shared OpenCode auth/config discoverable for direct `opencode` CLI usage.
+if [[ -n "${OPENCODE_HOME:-}" ]]; then
+  mkdir -p "$OPENCODE_HOME"
+
+  if [[ -f /opencode-share/auth.json && ! -e "$OPENCODE_HOME/auth.json" ]]; then
+    ln -s /opencode-share/auth.json "$OPENCODE_HOME/auth.json"
+  fi
+
+  if [[ -f /opencode-config/opencode.jsonc && ! -e "$OPENCODE_HOME/opencode.jsonc" ]]; then
+    ln -s /opencode-config/opencode.jsonc "$OPENCODE_HOME/opencode.jsonc"
+  fi
+fi
+
 exec "$@"

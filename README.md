@@ -302,6 +302,8 @@ Expected:
 - `OPENCODE_HOME` points to repo-local runtime state under `/workspace/.../.devcontainer/.runtime/opencode-state`
 - `OPENCODE_AUTH_DIR` points to `/opencode-share`
 
+Container entrypoint links shared auth/config into `OPENCODE_HOME` (`auth.json` and `opencode.jsonc`) so running `opencode` directly from an interactive shell resolves credentials consistently.
+
 ### 6) If browser OAuth cannot run from container
 
 Do OAuth once on the host (Step 3), then restart the container. Because auth (`~/.local/share/opencode`) and config (`~/.config/opencode`) are both shared host mounts, containers in other repos should pick it up automatically.
