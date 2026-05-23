@@ -307,3 +307,15 @@ Expected:
 ### 6) If browser OAuth cannot run from container
 
 Do OAuth once on the host (Step 3), then restart the container. Because auth (`~/.local/share/opencode`) and config (`~/.config/opencode`) are both shared host mounts, containers in other repos should pick it up automatically.
+
+# to auth with openai from within container
+
+- you need to edit docker-compose.yml to allow port 1455, e.g.,  add the `ports:\n- "1455:1455"` line after init: and before security_opt: so it looks like:
+  ```
+      init: true
+      ports:
+        - "1455:1455"
+      security_opt:
+        - no-new-privileges:true
+  ```
+- then start opencode and do auth (browser).
