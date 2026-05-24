@@ -1,0 +1,6 @@
+node_modules/
+artifacts/
+cache/
+
+# normally this wouldn't be here, but for this repo it is appropriate.
+package-lock.json

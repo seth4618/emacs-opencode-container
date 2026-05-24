@@ -11,3 +11,6 @@ sample/solidity/node_modules/
 
 # cloned elisp helper repos
 elisp-helpers/opencode.el/
+
+# opencode generated backups
+*~
