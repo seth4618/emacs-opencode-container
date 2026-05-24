@@ -8,6 +8,12 @@ if ! "$(dirname "$0")/dev-init.sh"; then
   exit 1
 fi
 
+echo "Syncing elisp helpers..."
+if ! "$(dirname "$0")/sync-elisp-helpers.sh"; then
+  echo "sync-elisp-helpers.sh failed; aborting dev-up." >&2
+  exit 1
+fi
+
 load_context
 SECRETS_LIST_FILE="${SECRETS_PATHS_FILE:-$REPO_ROOT/secrets-paths.txt}"
 
