@@ -61,7 +61,7 @@ This creates:
 
 - `HOST_REPO_PATH` defaults to the current repo root.
 - `WAYLAND_SOCKET_PATH` defaults to `/run/user/<uid>/wayland-0`.
-- `COMPOSE_PROJECT_NAME` defaults to `<repo-name>-dev`.
+- `COMPOSE_PROJECT_NAME` defaults to a Docker Compose-safe version of `<repo-name>-dev` (lowercase, starts with a letter or digit, and contains only lowercase letters, digits, hyphens, and underscores). For example, a repo named `BRAINS26` becomes `brains26-dev`.
 
 Common optional values include:
 
@@ -117,6 +117,8 @@ This writes missing values only:
 - `HOST_COMMON_HOME=$HOME/.opencode-common-home`
 
 `HOST_OPENCODE_DIR` is deprecated. Use `HOST_OPENCODE_SHARE_DIR` and `HOST_OPENCODE_CONFIG_DIR` instead.
+
+Docker Compose requires project names to match its lowercase project-name format because Compose uses the value to derive Docker resource names, labels, and network/container identifiers. If an older `.devcontainer/.env` contains an invalid value such as `COMPOSE_PROJECT_NAME=BRAINS26-dev`, rerun `dev-init.sh` or `dev-up.sh`; `dev-init.sh` will rewrite it to a valid lowercase form such as `brains26-dev`.
 
 8. Inspect status or stop the container:
 
