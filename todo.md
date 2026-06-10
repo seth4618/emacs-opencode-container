@@ -1,3 +1,13 @@
+# List of current todos for this repo
+
+- try and keep all helper files and such to use this system are in .devcontainer or hidden.
+  - elisp-helpers should be moved down to .devcontainer
+- check to see if .runtime is no longer needed to so we can get rid of it
+- put elisp-helpers in .gitignore
+- determine if .devcontainer should be put into gitignore on dev-init.sh (in all cases except this repo)
+  - if we think it should, then add that to dev-init.sh and we will hand edit it out of this repo
+
+# Original directions
 
 Create a disposable test repository that sets up a **local Docker-based development environment** for safe use of OpenCode inside Emacs on Ubuntu 24.04.
 
