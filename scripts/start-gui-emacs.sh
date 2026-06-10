@@ -13,7 +13,7 @@ export GDK_BACKEND=\"${GDK_BACKEND:-wayland}\"
 if [[ ! -S \"${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY}\" ]]; then
   echo \"Wayland socket ${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY} is unavailable.\"
   echo \"Use scripts/start-terminal-emacs.sh as fallback.\"
-  # exit 1
+  exit 1
 fi
 
 exec emacs
