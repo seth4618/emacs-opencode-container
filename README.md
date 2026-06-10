@@ -222,13 +222,15 @@ ls -la ~/.emacs.d ~/.bashrc ~/.bashrc.local
 emacs -Q --batch -l ~/.emacs.d/early-init.el -l ~/.emacs.d/init.el --eval '(message "emacs-init-ok")'
 ```
 
-For container-context changes, compare status before and after:
+For container-context changes to this toolkit, compare status before and after by running these **from the host** and **from this repository root** (not from inside the container):
 
 ```bash
 scripts/dev-status.sh
 scripts/dev-up.sh
 scripts/dev-status.sh
 ```
+
+When validating another repo that uses this toolkit, run the equivalent `dev-status.sh`, `dev-up.sh`, and `dev-status.sh` commands from that target repo on the host.
 
 ## Notes
 
