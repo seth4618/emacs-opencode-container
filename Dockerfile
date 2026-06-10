@@ -23,8 +23,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nodejs \
     npm \
     emacs-pgtk \
-    fonts-dejavu \
-    && rm -rf /var/lib/apt/lists/*
+    fonts-dejavu
+RUN apt-get install -y --no-install-recommends build-essential pkg-config
 
 RUN groupadd --gid "${USER_GID}" "${USERNAME}" \
     && useradd --uid "${USER_UID}" --gid "${USER_GID}" --create-home --shell /bin/bash "${USERNAME}" \
