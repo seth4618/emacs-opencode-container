@@ -2,9 +2,10 @@
 .env
 secrets-paths.txt
 
-# my houseekeeping files
-.,.*
-\#scg-*
+# editor backup/autosave/lock files
+.,*
+\#scg*
+.#*
 # container-local dependencies
 sample/typescript/node_modules/
 sample/solidity/node_modules/

@@ -2,18 +2,25 @@
 set -euo pipefail
 source "$(dirname "$0")/_common.sh"
 
-HOST_PATH="${HOST_REPO_PATH:-}"
-if [[ -z "$HOST_PATH" && -f "$(dirname "$0")/../.runtime/compose.env" ]]; then
-  HOST_PATH="$(grep -E '^HOST_REPO_PATH=' "$(dirname "$0")/../.runtime/compose.env" | tail -n1 | cut -d= -f2-)"
+load_context
+if [[ -f "$PROJECT_ENV_FILE" ]]; then
+  # shellcheck disable=SC1090
+  source "$PROJECT_ENV_FILE"
+fi
+if [[ -f "$PROJECT_COMPOSE_ENV_FILE" ]]; then
+  # shellcheck disable=SC1090
+  source "$PROJECT_COMPOSE_ENV_FILE"
 fi
 
-echo "=== Container workspace status ==="
-exec_dev bash -lc 'cd "${PROJECT_WORKSPACE:-/workspace}" && git status -sb || true'
+HOST_PATH="${HOST_REPO_PATH:-$REPO_ROOT}"
 
-echo
+printf '=== Container workspace status ===\n'
+exec_dev bash -lc 'cd "${PROJECT_WORKSPACE:-/workspace/${WORKSPACE_DIRNAME:-}}" && git status -sb || true'
+
+printf '\n'
 if [[ -n "$HOST_PATH" && -d "$HOST_PATH/.git" ]]; then
-  echo "=== Host checkout status ($HOST_PATH) ==="
+  printf '=== Host checkout status (%s) ===\n' "$HOST_PATH"
   git -C "$HOST_PATH" status -sb || true
 else
-  echo "Host repo path unavailable in runtime environment; skipping host git status."
+  printf 'Host repo path unavailable in runtime environment; skipping host git status.\n'
 fi
