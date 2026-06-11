@@ -1,10 +1,11 @@
 FROM ubuntu:24.04
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG USERNAME=dev
-ARG USER_UID=1000
-ARG USER_GID=1000
-ARG OPENCODE_NPM_PACKAGE=opencode-ai
+ARG EOC_TOOLKIT_REV=unknown
+
+LABEL org.opencontainers.image.title="eoc-base-container" \
+      org.opencontainers.image.description="Base image for Emacs/OpenCode dev containers" \
+      org.opencontainers.image.revision="${EOC_TOOLKIT_REV}"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
@@ -23,35 +24,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nodejs \
     npm \
     emacs-pgtk \
-    fonts-dejavu
-RUN apt-get install -y --no-install-recommends build-essential pkg-config
-
-RUN groupadd --gid "${USER_GID}" "${USERNAME}" \
-    && useradd --uid "${USER_UID}" --gid "${USER_GID}" --create-home --shell /bin/bash "${USERNAME}" \
-    && chsh --shell /bin/bash "${USERNAME}"
-
-RUN npm install -g \
-    pnpm \
-    typescript \
-    typescript-language-server \
-    pyright \
-    solhint \
-    hardhat \
-    @nomicfoundation/solidity-language-server \
-    "$OPENCODE_NPM_PACKAGE"
+    fonts-dejavu \
+    build-essential \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY docker/entrypoint.sh /usr/local/bin/container-entrypoint
 COPY docker/load-runtime-env.sh /usr/local/bin/load-runtime-env
 COPY docker/git-safe /usr/local/bin/git
 COPY elisp-helpers/opencode.el /opt/elisp-helpers/opencode.el
 RUN chmod +x /usr/local/bin/container-entrypoint /usr/local/bin/load-runtime-env /usr/local/bin/git \
-    && chown -R ${USER_UID}:${USER_GID} /opt/elisp-helpers
+    && chmod -R a+rX /opt/elisp-helpers
 
-USER ${USERNAME}
 WORKDIR /workspace
 
-ENV HOME=/home/${USERNAME}
 ENV SHELL=/bin/bash
-ENV PATH=${HOME}/.local/bin:${PATH}
 ENTRYPOINT ["/usr/local/bin/container-entrypoint"]
 CMD ["bash", "-lc", "sleep infinity"]
