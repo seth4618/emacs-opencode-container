@@ -190,7 +190,7 @@ There is no `src/` directory in the current repository. The shell scripts under 
 - `new-worktree.sh` / `new-disposable-branch.sh`: helper workflows for git branches/worktrees.
 - `setup-common-home.sh`: manage shared `HOST_COMMON_HOME` template files.
 - `test-common-home.sh`: validate common-home bootstrap behavior.
-- `sync-elisp-helpers.sh`: clone/update the external `opencode.el` helper checkout used by the image build.
+- `sync-elisp-helpers.sh`: clone/update the external `opencode.el` helper checkout under `.devcontainer/elisp-helpers/` used by the image build.
 
 ### In-container entry wrappers
 

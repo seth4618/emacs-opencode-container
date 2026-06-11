@@ -10,7 +10,7 @@
 - `docker/load-runtime-env.sh`: actual env-loading order inside the container.
 - `home-template/`: files copied into `HOST_COMMON_HOME` by `setup-common-home.sh`.
 - `emacs.d/`: repo-managed Emacs config loaded inside the common home.
-- `elisp-helpers/opencode.el/`: external helper checkout updated by `scripts/sync-elisp-helpers.sh`; treat it as upstream-managed unless the task explicitly targets it.
+- `.devcontainer/elisp-helpers/opencode.el/`: external helper checkout updated by `scripts/sync-elisp-helpers.sh`; treat it as upstream-managed unless the task explicitly targets it.
 
 ## Command Reality
 - Run repo commands through the shell scripts, not raw `docker compose`; the scripts resolve repo context, load both env files, and auto-start the container when needed.
