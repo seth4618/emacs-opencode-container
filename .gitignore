@@ -11,6 +11,7 @@ sample/typescript/node_modules/
 sample/solidity/node_modules/
 
 # cloned elisp helper repos
+.devcontainer/elisp-helpers/opencode.el/
 elisp-helpers/opencode.el/
 
 # opencode generated backups
