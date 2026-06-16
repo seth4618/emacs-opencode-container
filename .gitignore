@@ -15,3 +15,7 @@ elisp-helpers/opencode.el/
 
 # opencode generated backups
 *~
+
+# generated per-repo devcontainer runtime state
+.devcontainer/.env
+.devcontainer/.runtime/

@@ -15,10 +15,17 @@ if ! "$(dirname "$0")/sync-elisp-helpers.sh"; then
 fi
 
 load_context
-SECRETS_LIST_FILE="${SECRETS_PATHS_FILE:-$REPO_ROOT/secrets-paths.txt}"
 
 # shellcheck disable=SC1090
 source "$PROJECT_ENV_FILE"
+
+BASE_IMAGE_NAME="${EOC_BASE_IMAGE:-eoc-base-container:latest}"
+if ! docker image inspect "$BASE_IMAGE_NAME" >/dev/null 2>&1; then
+  echo "Base image $BASE_IMAGE_NAME not found; building it now..."
+  EOC_SKIP_ELISP_SYNC=1 "$(dirname "$0")/dev-build-base.sh"
+fi
+
+SECRETS_LIST_FILE="${SECRETS_PATHS_FILE:-$REPO_ROOT/secrets-paths.txt}"
 
 : "${HOST_REPO_PATH:=$REPO_ROOT}"
 HOST_UID="${HOST_UID:-$(id -u)}"

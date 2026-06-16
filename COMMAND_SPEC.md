@@ -20,6 +20,8 @@ This document defines a command-level spec for running the dev container tooling
 - **PROJECT_ENV_FILE**: `${PROJECT_DOTDIR}/.env`.
 - **PROJECT_RUNTIME_DIR**: `${PROJECT_DOTDIR}/.runtime`.
 - **PROJECT_COMPOSE_ENV_FILE**: `${PROJECT_RUNTIME_DIR}/compose.env`.
+- **PROJECT_DOCKERFILE**: `${PROJECT_DOTDIR}/Dockerfile`.
+- **BASE_IMAGE**: shared toolkit image tag, default `eoc-base-container:latest`.
 
 ## Required command behavior
 
@@ -51,8 +53,10 @@ Bootstrap per-repo `.devcontainer` config.
 #### Behavior
 1. Create `${PROJECT_DOTDIR}` and `${PROJECT_RUNTIME_DIR}` if absent.
 2. If `${PROJECT_ENV_FILE}` missing, create from template with required keys and comments.
-3. If present and `--force` not set, do not overwrite.
-4. Print next steps: edit `.env`, run `dev-up`.
+3. If `${PROJECT_DOTDIR}/.gitignore` is missing, create one that ignores local env/runtime files but allows the project Dockerfile and templates to be committed.
+4. If `${PROJECT_DOCKERFILE}` missing, create an editable project Dockerfile that starts from `${BASE_IMAGE}`, includes removable optional blocks for baseline language/OpenCode npm tooling and LaTeX/TeX Live support, and keeps a required final user layer for host UID/GID matching.
+5. If present and `--force` not set, do not overwrite user-editable files.
+6. Print next steps: edit `.env` and `.devcontainer/Dockerfile`, run `dev-up`.
 
 #### Exit conditions
 - `0` on success.
@@ -74,16 +78,36 @@ Create/update and start project container.
 5. Set `HOST_COMMON_HOME` default = `${HOME}/.opencode-common-home`.
 6. Run common-home bootstrap:
    - `setup-common-home.sh <HOST_COMMON_HOME> /workspace/<WORKSPACE_DIRNAME>`
-7. Regenerate `${PROJECT_COMPOSE_ENV_FILE}`.
-8. Run compose using:
+7. Ensure `${BASE_IMAGE}` exists; if missing, build it from `TOOL_HOME/Dockerfile`.
+8. Regenerate `${PROJECT_COMPOSE_ENV_FILE}`.
+9. Run compose using:
    - `--env-file ${PROJECT_ENV_FILE}`
    - `--env-file ${PROJECT_COMPOSE_ENV_FILE}`
    - compose definition from `TOOL_HOME/docker-compose.yml`
-9. Start service `dev` with build.
+   - build context `${HOST_REPO_PATH}`
+   - dockerfile `${PROJECT_DOCKERFILE}`
+10. Start service `dev` with build.
 
 #### Exit conditions
 - `0` on success.
 - nonzero with diagnostics for missing docker, invalid env, mount path errors.
+
+### `dev-build-base`
+
+Build the shared toolkit base image.
+
+#### Inputs
+- Optional Docker build flags.
+- `EOC_BASE_IMAGE` env override for the image tag.
+
+#### Behavior
+1. Sync external elisp helpers used by the base image.
+2. Build `TOOL_HOME/Dockerfile` as `${BASE_IMAGE}`.
+3. Add an OCI revision label with the toolkit git revision when available.
+
+#### Exit conditions
+- `0` on success.
+- nonzero with diagnostics for missing docker, network, or build errors.
 
 ### `dev-shell`
 
@@ -148,6 +172,9 @@ Display:
 <REPO_ROOT>/
   .devcontainer/
     .env
+    .gitignore
+    Dockerfile
+    opencode.env.template
     .runtime/
       compose.env
       secrets/
@@ -168,7 +195,7 @@ Optional:
 ## Safety and idempotency requirements
 
 - `dev-init` and `dev-up` must be idempotent.
-- Existing user files must never be overwritten silently.
+- Existing user files, including `.devcontainer/Dockerfile`, must never be overwritten silently.
 - Generated files under `.runtime/` may be replaced each run.
 - Commands must never depend on current working directory once `REPO_ROOT` is resolved.
 
@@ -180,4 +207,4 @@ Centralized `dev-*` commands and per-repo `.devcontainer` runtime layout are now
 
 - Command names are standardized on `dev-*`.
 - Non-git directories are not supported in this phase.
-- Workflow uses central commands on `PATH` with per-repo `.devcontainer` state.
+- Workflow uses central commands on `PATH` with per-repo `.devcontainer` state and an editable per-repo project Dockerfile.

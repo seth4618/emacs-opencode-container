@@ -2,8 +2,10 @@ services:
   dev:
     hostname: ${COMPOSE_PROJECT_NAME:-inside-docker}
     build:
-      context: .
+      context: ${HOST_REPO_PATH}
+      dockerfile: ${PROJECT_DOCKERFILE:-.devcontainer/Dockerfile}
       args:
+        BASE_IMAGE: ${EOC_BASE_IMAGE:-eoc-base-container:latest}
         USERNAME: ${CONTAINER_USER:-dev}
         USER_UID: ${HOST_UID:-1000}
         USER_GID: ${HOST_GID:-1000}

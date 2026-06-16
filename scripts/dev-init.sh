@@ -80,6 +80,78 @@ fi
 
 ensure_valid_compose_project_name
 
+PROJECT_GITIGNORE="$PROJECT_DOTDIR/.gitignore"
+if [[ ! -f "$PROJECT_GITIGNORE" ]]; then
+  cat > "$PROJECT_GITIGNORE" <<'GITIGNORE'
+.env
+.runtime/
+opencode.env
+GITIGNORE
+  echo "Created $PROJECT_GITIGNORE"
+else
+  echo "Exists: $PROJECT_GITIGNORE"
+fi
+
+PROJECT_DOCKERFILE="$PROJECT_DOTDIR/Dockerfile"
+if [[ ! -f "$PROJECT_DOCKERFILE" ]]; then
+  cat > "$PROJECT_DOCKERFILE" <<'DOCKERFILE'
+ARG BASE_IMAGE=eoc-base-container:latest
+FROM ${BASE_IMAGE}
+
+ARG DEBIAN_FRONTEND=noninteractive
+ARG USERNAME=dev
+ARG USER_UID=1000
+ARG USER_GID=1000
+ARG OPENCODE_NPM_PACKAGE=opencode-ai
+
+# Baseline language tooling and OpenCode CLI. Delete this block if the repo
+# does not need the bundled JavaScript/Python/Solidity tools or OpenCode CLI.
+RUN npm install -g \
+    pnpm \
+    typescript \
+    typescript-language-server \
+    pyright \
+    solhint \
+    hardhat \
+    @nomicfoundation/solidity-language-server \
+    "$OPENCODE_NPM_PACKAGE"
+
+# LaTeX / TeX Live support. Delete this block if the repo does not build LaTeX.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    latexmk \
+    texlive-latex-recommended \
+    texlive-latex-extra \
+    texlive-fonts-recommended \
+    texlive-bibtex-extra \
+    biber \
+    chktex \
+    && rm -rf /var/lib/apt/lists/*
+
+# Required project user layer. Keep this even if you delete all optional tooling
+# above; it makes the final image match the host UID/GID used by Docker Compose.
+RUN set -eux; \
+    if ! getent group "${USER_GID}" >/dev/null; then \
+      groupadd --gid "${USER_GID}" "${USERNAME}"; \
+    fi; \
+    if id -u "${USERNAME}" >/dev/null 2>&1; then \
+      usermod --uid "${USER_UID}" --gid "${USER_GID}" "${USERNAME}"; \
+    else \
+      useradd --uid "${USER_UID}" --gid "${USER_GID}" --create-home --shell /bin/bash "${USERNAME}"; \
+    fi; \
+    mkdir -p "/home/${USERNAME}" /workspace; \
+    chown -R "${USER_UID}:${USER_GID}" "/home/${USERNAME}" /workspace
+
+USER ${USERNAME}
+WORKDIR /workspace
+
+ENV HOME=/home/${USERNAME}
+ENV PATH=${HOME}/.local/bin:${PATH}
+DOCKERFILE
+  echo "Created $PROJECT_DOCKERFILE"
+else
+  echo "Exists: $PROJECT_DOCKERFILE"
+fi
+
 OPENCODE_ENV_TEMPLATE="$PROJECT_DOTDIR/opencode.env.template"
 if [[ ! -f "$OPENCODE_ENV_TEMPLATE" ]]; then
   cat > "$OPENCODE_ENV_TEMPLATE" <<'ENV'
