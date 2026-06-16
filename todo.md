@@ -49,7 +49,7 @@ All current scripts in `scripts/` have a purpose and should stay unless the over
 - `_common.sh` - shared context, Compose, and auto-start helpers.
 - `setup-common-home.sh` - common-home installer used by `dev-up.sh` and tests.
 - `test-common-home.sh` - lightweight regression test.
-- `sync-elisp-helpers.sh` - fetches the upstream-managed `opencode.el` helper checkout.
+- `sync-elisp-helpers.sh` - fetches the upstream-managed `.devcontainer/elisp-helpers/opencode.el` helper checkout.
 - `check-wayland.sh` - Wayland diagnostics for GUI Emacs.
 - `sync-status.sh` - host/container git status summary.
 - `new-disposable-branch.sh` - container-side branch helper.

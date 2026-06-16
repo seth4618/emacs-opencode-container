@@ -84,7 +84,7 @@
 ;;   (add-to-list 'load-path "/path/to/opencode.el")
 ;;   (require 'opencode)
 (let* ((container-opencode-dir "/opt/elisp-helpers/opencode.el")
-       (repo-opencode-dir (expand-file-name "elisp-helpers/opencode.el"
+       (repo-opencode-dir (expand-file-name ".devcontainer/elisp-helpers/opencode.el"
                                             (file-name-directory (directory-file-name default-directory))))
        (opencode-dir (cond
                       ((file-directory-p container-opencode-dir) container-opencode-dir)

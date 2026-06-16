@@ -2,12 +2,20 @@
 set -euo pipefail
 source "$(dirname "$0")/_common.sh"
 
-REPO_ROOT="$(resolve_repo_root)"
-HELPERS_DIR="$REPO_ROOT/elisp-helpers"
+REPO_ROOT="$TOOL_HOME"
+HELPERS_DIR="$REPO_ROOT/.devcontainer/elisp-helpers"
 TARGET_DIR="$HELPERS_DIR/opencode.el"
+LEGACY_HELPERS_DIR="$REPO_ROOT/elisp-helpers"
+LEGACY_TARGET_DIR="$LEGACY_HELPERS_DIR/opencode.el"
 REMOTE_URL="https://codeberg.org/sczi/opencode.el.git"
 
 mkdir -p "$HELPERS_DIR"
+
+if [[ ! -e "$TARGET_DIR" && -d "$LEGACY_TARGET_DIR/.git" ]]; then
+  echo "Migrating legacy helper checkout from $LEGACY_TARGET_DIR to $TARGET_DIR"
+  mv "$LEGACY_TARGET_DIR" "$TARGET_DIR"
+  rmdir "$LEGACY_HELPERS_DIR" 2>/dev/null || true
+fi
 
 if [[ -d "$TARGET_DIR/.git" ]]; then
   echo "Updating $TARGET_DIR"

@@ -29,7 +29,7 @@ else
   toolkit_rev="unknown"
 fi
 
-if ! git -C "$TOOL_HOME" diff --quiet -- Dockerfile docker/ elisp-helpers/ 2>/dev/null; then
+if ! git -C "$TOOL_HOME" diff --quiet -- Dockerfile docker/ .devcontainer/elisp-helpers/ 2>/dev/null; then
   toolkit_rev="${toolkit_rev}-dirty"
 fi
 
