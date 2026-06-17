@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     latexmk \
     texlive-latex-recommended \
     texlive-latex-extra \
+    texlive-science \
     texlive-fonts-recommended \
     texlive-bibtex-extra \
     biber \
