@@ -31,7 +31,7 @@ source ~/.bashrc
 
 ```bash
 command -v dev-up.sh
-command -v dev-init.sh
+command -v dev-init.sh coding
 ```
 
 4. Ensure prerequisites exist on the host:
@@ -47,7 +47,7 @@ Run these commands **from inside the git repository** you want to develop in.
 1. Initialize repo-local container config:
 
 ```bash
-dev-init.sh
+dev-init.sh coding
 ```
 
 This creates:
@@ -68,7 +68,7 @@ This creates:
 
 Common optional values include:
 
-- `EOC_BASE_IMAGE` (defaults to `eoc-base-container:latest`)
+- `EOC_BASE_IMAGE` (set by `dev-init.sh`; for example `eoc-coding-container:latest`)
 - `HOST_COMMON_HOME` (defaults to `$HOME/.opencode-common-home` during `dev-up.sh`)
 - `HOST_OPENCODE_SHARE_DIR` (defaults to `$HOME/.local/share/opencode`)
 - `HOST_OPENCODE_CONFIG_DIR` (defaults to `$HOME/.config/opencode`)
@@ -76,7 +76,7 @@ Common optional values include:
 - `OPENCODE_MODEL` (repo default model; falls back to `$HOST_COMMON_HOME/.opencode-common.env`)
 - cache/state/resource overrides such as `HOST_CACHE_DIR`, `CPU_LIMIT`, `MEM_LIMIT`, and `PIDS_LIMIT`
 
-The generated project Dockerfile starts from `eoc-base-container:latest`, then adds optional baseline language/OpenCode npm tooling and optional LaTeX/TeX Live packages. Delete either optional block before the first build if the repo does not need it. If you want no extra tooling beyond the base image, delete both optional install blocks but keep the required project user layer so Docker Compose can run with your host UID/GID. The generated `.devcontainer/.gitignore` ignores `.env`, `.runtime/`, and `opencode.env` while allowing `.devcontainer/Dockerfile`, `.devcontainer/.gitignore`, and `.devcontainer/opencode.env.template` to be committed.
+`dev-init.sh` requires an image choice. Use `base` for only the shared OpenCode/Emacs base image, or use a template name from `docker-templates/` such as `coding`, `latex`, `everything`, or `middle`. The selected template image is built as `eoc-<name>-container:latest` when missing or older than its template Dockerfile. The generated project Dockerfile is intentionally small: it starts from the selected image and keeps only the required project user layer so Docker Compose can run with your host UID/GID. The generated `.devcontainer/.gitignore` ignores `.env`, `.runtime/`, and `opencode.env` while allowing `.devcontainer/Dockerfile`, `.devcontainer/.gitignore`, and `.devcontainer/opencode.env.template` to be committed.
 
 3. Start or update the container:
 
@@ -138,15 +138,14 @@ dev-down.sh
 When you run `dev-up.sh`, it:
 
 1. Resolves the target git repo root (`git rev-parse --show-toplevel`).
-2. Ensures `.devcontainer` exists by running `dev-init.sh`.
+2. Verifies that `dev-init.sh <base|template-name>` has already created the required `.devcontainer` files; if not, it prints the missing paths and exits.
 3. Syncs the external `.devcontainer/elisp-helpers/opencode.el` helper checkout by running `sync-elisp-helpers.sh`.
-4. Builds `eoc-base-container:latest` automatically if that base image is missing.
-5. Loads `<repo>/.devcontainer/.env`.
-6. Bootstraps common home via `setup-common-home.sh`.
-7. Creates host cache, OpenCode, SSH, and repo-local runtime directories as needed.
-8. Rebuilds `<repo>/.devcontainer/.runtime/secrets` from `secrets-paths.txt`.
-9. Regenerates `<repo>/.devcontainer/.runtime/compose.env`.
-10. Runs Docker Compose using this repository's root `docker-compose.yml` and the repo's `<repo>/.devcontainer/Dockerfile`.
+4. Loads `<repo>/.devcontainer/.env`.
+5. Bootstraps common home via `setup-common-home.sh`.
+6. Creates host cache, OpenCode, SSH, and repo-local runtime directories as needed.
+7. Rebuilds `<repo>/.devcontainer/.runtime/secrets` from `secrets-paths.txt`.
+8. Regenerates `<repo>/.devcontainer/.runtime/compose.env`.
+9. Runs Docker Compose using this repository's root `docker-compose.yml` and the repo's `<repo>/.devcontainer/Dockerfile`.
 
 Secrets are materialized into `<repo>/.devcontainer/.runtime/secrets` as real files/directories during `dev-up.sh` (not host-path symlinks), then mounted at `/secrets` in the container. Re-run `dev-up.sh` after changing `secrets-paths.txt` entries or secret file contents.
 
@@ -215,7 +214,7 @@ Primary lightweight regression check for this toolkit:
 
 ```bash
 scripts/test-common-home.sh
-scripts/test-dev-init.sh
+scripts/test-dev-init.sh coding
 ```
 
 From a repo using this system:
@@ -250,7 +249,7 @@ When validating another repo that uses this toolkit, run the equivalent `dev-sta
 - The target repo is currently mounted read/write at `/workspace/<repo-name>`.
 - `git push origin` is blocked in-container by `/usr/local/bin/git`; push from the host if needed.
 - `dev-up.sh` uses network access when `sync-elisp-helpers.sh` clones or pulls `https://codeberg.org/sczi/opencode.el.git`.
-- The shared base image is tagged `eoc-base-container:latest` by default. `dev-up.sh` builds it automatically when missing; run `dev-build-base.sh` manually after toolkit Dockerfile/script changes if you want to refresh an existing base image. The base image includes an OCI revision label so you can inspect which toolkit commit produced it.
+- The shared base image is tagged `eoc-base-container:latest` and includes the OpenCode npm package. Layered template images are tagged `eoc-<template>-container:latest`; use `dev-build-image.sh <base|template-name>` or rerun `dev-init.sh <base|template-name>` after toolkit Dockerfile/template changes to refresh them. The base image includes an OCI revision label so you can inspect which toolkit commit produced it.
 
 ## OpenCode model defaults
 
@@ -381,7 +380,7 @@ Remove that port mapping when OAuth setup is complete if you do not want the cal
 
 ## Troubleshooting
 
-- If `dev-opencode.sh` prints `opencode command not found`, make sure the optional npm tooling block remains in `<repo>/.devcontainer/Dockerfile`, rebuild the container image after setting `OPENCODE_NPM_PACKAGE` in `<repo>/.devcontainer/.env`, and run `dev-up.sh` again.
+- If `dev-opencode.sh` prints `opencode command not found`, rebuild the selected base/template image with `dev-build-image.sh <base|template-name>` and then run `dev-up.sh` again. OpenCode is installed in `eoc-base-container:latest` via `OPENCODE_NPM_PACKAGE`.
 - If GUI Emacs cannot connect to Wayland, run `check-wayland.sh` and use `dev-emacs.sh --terminal` while debugging the socket path/permissions.
 - If a changed `secrets-paths.txt` entry is not visible in the container, rerun `dev-up.sh` so the secrets bundle is recopied.
 

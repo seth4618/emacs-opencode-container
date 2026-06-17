@@ -1,0 +1,12 @@
+ARG BASE_IMAGE=eoc-base-container:latest
+FROM ${BASE_IMAGE}
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+# ============================================================================
+# Add your project-specific installs here.
+# Examples:
+#   RUN apt-get update && apt-get install -y --no-install-recommends <packages> \
+#       && rm -rf /var/lib/apt/lists/*
+#   RUN npm install -g <packages>
+# ============================================================================

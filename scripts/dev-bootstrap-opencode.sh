@@ -5,7 +5,7 @@ source "$(dirname "$0")/_common.sh"
 REPO_ROOT="$(resolve_repo_root)"
 PROJECT_ENV_FILE="$REPO_ROOT/.devcontainer/.env"
 
-"$(dirname "$0")/dev-init.sh" >/dev/null
+"$(dirname "$0")/dev-init.sh" base >/dev/null
 
 default_share_dir="$HOME/.local/share/opencode"
 default_config_dir="$HOME/.config/opencode"

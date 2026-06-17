@@ -47,16 +47,16 @@ If `REPO_ROOT` cannot be resolved, command exits with clear guidance.
 Bootstrap per-repo `.devcontainer` config.
 
 #### Inputs
-- Optional `--repo-root <path>`
-- Optional `--force`
+- Required image argument: `base` or a template name matching `docker-templates/<name>.docker`.
 
 #### Behavior
-1. Create `${PROJECT_DOTDIR}` and `${PROJECT_RUNTIME_DIR}` if absent.
-2. If `${PROJECT_ENV_FILE}` missing, create from template with required keys and comments.
-3. If `${PROJECT_DOTDIR}/.gitignore` is missing, create one that ignores local env/runtime files but allows the project Dockerfile and templates to be committed.
-4. If `${PROJECT_DOCKERFILE}` missing, create an editable project Dockerfile that starts from `${BASE_IMAGE}`, includes removable optional blocks for baseline language/OpenCode npm tooling and LaTeX/TeX Live support, and keeps a required final user layer for host UID/GID matching.
-5. If present and `--force` not set, do not overwrite user-editable files.
-6. Print next steps: edit `.env` and `.devcontainer/Dockerfile`, run `dev-up`.
+1. Ensure the selected layer image exists and is newer than its source Dockerfile; build `eoc-base-container:latest` for `base`, otherwise build `eoc-<name>-container:latest` from `docker-templates/<name>.docker`.
+2. Create `${PROJECT_DOTDIR}` and `${PROJECT_RUNTIME_DIR}` if absent.
+3. If `${PROJECT_ENV_FILE}` missing, create from template with required keys, comments, and `EOC_BASE_IMAGE` set to the selected image.
+4. If `${PROJECT_DOTDIR}/.gitignore` is missing, create one that ignores local env/runtime files but allows the project Dockerfile and templates to be committed.
+5. If `${PROJECT_DOCKERFILE}` missing, create an editable project Dockerfile that starts from `${BASE_IMAGE}` and keeps the required final user layer for host UID/GID matching.
+6. If present, do not overwrite user-editable files.
+7. Print next steps: edit `.env` and `.devcontainer/Dockerfile`, run `dev-up`.
 
 #### Exit conditions
 - `0` on success.
@@ -72,21 +72,20 @@ Create/update and start project container.
 
 #### Behavior
 1. Run discovery rules.
-2. Ensure `${PROJECT_DOTDIR}` exists; if missing call `dev-init` behavior automatically.
+2. Verify that `dev-init.sh <base|template-name>` has already created `${PROJECT_ENV_FILE}`, `${PROJECT_DOTDIR}/Dockerfile`, `${PROJECT_DOTDIR}/.gitignore`, and `${PROJECT_DOTDIR}/opencode.env.template`; if not, print the missing paths and exit.
 3. Require `HOST_REPO_PATH` in `${PROJECT_ENV_FILE}` or derive from `REPO_ROOT` when absent.
 4. Set `WORKSPACE_DIRNAME` default = `basename(HOST_REPO_PATH)`.
 5. Set `HOST_COMMON_HOME` default = `${HOME}/.opencode-common-home`.
 6. Run common-home bootstrap:
    - `setup-common-home.sh <HOST_COMMON_HOME> /workspace/<WORKSPACE_DIRNAME>`
-7. Ensure `${BASE_IMAGE}` exists; if missing, build it from `TOOL_HOME/Dockerfile`.
-8. Regenerate `${PROJECT_COMPOSE_ENV_FILE}`.
-9. Run compose using:
+7. Regenerate `${PROJECT_COMPOSE_ENV_FILE}`.
+8. Run compose using:
    - `--env-file ${PROJECT_ENV_FILE}`
    - `--env-file ${PROJECT_COMPOSE_ENV_FILE}`
    - compose definition from `TOOL_HOME/docker-compose.yml`
    - build context `${HOST_REPO_PATH}`
    - dockerfile `${PROJECT_DOCKERFILE}`
-10. Start service `dev` with build.
+9. Start service `dev` with build.
 
 #### Exit conditions
 - `0` on success.
@@ -98,11 +97,11 @@ Build the shared toolkit base image.
 
 #### Inputs
 - Optional Docker build flags.
-- `EOC_BASE_IMAGE` env override for the image tag.
+- `dev-build-base.sh` is a compatibility wrapper for `dev-build-image.sh base`.
 
 #### Behavior
 1. Sync external elisp helpers used by the base image.
-2. Build `TOOL_HOME/Dockerfile` as `${BASE_IMAGE}`.
+2. Build `TOOL_HOME/Dockerfile` as `eoc-base-container:latest`.
 3. Add an OCI revision label with the toolkit git revision when available.
 
 #### Exit conditions

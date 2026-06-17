@@ -1,0 +1,16 @@
+ARG BASE_IMAGE=eoc-base-container:latest
+FROM ${BASE_IMAGE}
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+# LaTeX / TeX Live support.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    latexmk \
+    texlive-latex-recommended \
+    texlive-latex-extra \
+    texlive-science \
+    texlive-fonts-recommended \
+    texlive-bibtex-extra \
+    biber \
+    chktex \
+    && rm -rf /var/lib/apt/lists/*

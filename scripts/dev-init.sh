@@ -7,6 +7,57 @@ PROJECT_DOTDIR="$REPO_ROOT/.devcontainer"
 PROJECT_RUNTIME_DIR="$PROJECT_DOTDIR/.runtime"
 PROJECT_ENV_FILE="$PROJECT_DOTDIR/.env"
 
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" || $# -ne 1 ]]; then
+  cat <<USAGE
+Usage: dev-init.sh <base|template-name>
+
+Initialize this repo's .devcontainer files.
+
+Arguments:
+  base             use eoc-base-container:latest as this project's base image
+  <template-name>  use docker-templates/<template-name>.docker, built as eoc-<template-name>-container:latest
+USAGE
+  [[ $# -ne 1 ]] && exit 1 || exit 0
+fi
+
+IMAGE_KIND="$1"
+if [[ "$IMAGE_KIND" == "base" ]]; then
+  PROJECT_BASE_IMAGE="eoc-base-container:latest"
+  SOURCE_DOCKERFILE="$TOOL_HOME/Dockerfile"
+else
+  SOURCE_DOCKERFILE="$TOOL_HOME/docker-templates/${IMAGE_KIND}.docker"
+  if [[ ! -f "$SOURCE_DOCKERFILE" ]]; then
+    echo "Error: docker template not found: $SOURCE_DOCKERFILE" >&2
+    exit 1
+  fi
+  PROJECT_BASE_IMAGE="eoc-${IMAGE_KIND}-container:latest"
+fi
+
+image_created_epoch() {
+  local image="$1" created
+  created="$(docker image inspect "$image" --format '{{.Created}}' 2>/dev/null || true)"
+  [[ -n "$created" ]] || return 1
+  date -d "$created" +%s
+}
+
+ensure_layer_image_current() {
+  local image="$1" dockerfile="$2" image_epoch dockerfile_epoch
+  if ! image_epoch="$(image_created_epoch "$image")"; then
+    echo "Image $image is missing; building it now..."
+    "$TOOL_HOME/scripts/dev-build-image.sh" "$IMAGE_KIND"
+    return
+  fi
+  dockerfile_epoch="$(stat -c %Y "$dockerfile")"
+  if (( image_epoch < dockerfile_epoch )); then
+    echo "Image $image is older than $dockerfile; rebuilding it now..."
+    "$TOOL_HOME/scripts/dev-build-image.sh" "$IMAGE_KIND"
+  else
+    echo "Image $image is current for $dockerfile"
+  fi
+}
+
+ensure_layer_image_current "$PROJECT_BASE_IMAGE" "$SOURCE_DOCKERFILE"
+
 is_valid_compose_project_name() {
   [[ "$1" =~ ^[a-z0-9][a-z0-9_-]*$ ]]
 }
@@ -71,6 +122,7 @@ COMPOSE_PROJECT_NAME=$DEFAULT_COMPOSE_PROJECT_NAME
 # HOST_OPENCODE_SHARE_DIR=$HOME/.local/share/opencode
 # HOST_OPENCODE_CONFIG_DIR=$HOME/.config/opencode
 # HOST_SSH_DIR=$HOME/.ssh
+EOC_BASE_IMAGE=${PROJECT_BASE_IMAGE}
 # OPENCODE_MODEL=gpt-5
 ENV
   echo "Created $PROJECT_ENV_FILE"
@@ -94,58 +146,34 @@ fi
 
 PROJECT_DOCKERFILE="$PROJECT_DOTDIR/Dockerfile"
 if [[ ! -f "$PROJECT_DOCKERFILE" ]]; then
-  cat > "$PROJECT_DOCKERFILE" <<'DOCKERFILE'
-ARG BASE_IMAGE=eoc-base-container:latest
-FROM ${BASE_IMAGE}
+  cat > "$PROJECT_DOCKERFILE" <<DOCKERFILE
+ARG BASE_IMAGE=${PROJECT_BASE_IMAGE}
+FROM \${BASE_IMAGE}
 
-ARG DEBIAN_FRONTEND=noninteractive
 ARG USERNAME=dev
 ARG USER_UID=1000
 ARG USER_GID=1000
-ARG OPENCODE_NPM_PACKAGE=opencode-ai
 
-# Baseline language tooling and OpenCode CLI. Delete this block if the repo
-# does not need the bundled JavaScript/Python/Solidity tools or OpenCode CLI.
-RUN npm install -g \
-    pnpm \
-    typescript \
-    typescript-language-server \
-    pyright \
-    solhint \
-    hardhat \
-    @nomicfoundation/solidity-language-server \
-    "$OPENCODE_NPM_PACKAGE"
-
-# LaTeX / TeX Live support. Delete this block if the repo does not build LaTeX.
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    latexmk \
-    texlive-latex-recommended \
-    texlive-latex-extra \
-    texlive-fonts-recommended \
-    texlive-bibtex-extra \
-    biber \
-    chktex \
-    && rm -rf /var/lib/apt/lists/*
-
-# Required project user layer. Keep this even if you delete all optional tooling
-# above; it makes the final image match the host UID/GID used by Docker Compose.
+# Required project user layer. Keep this even if the base image already has all
+# project tooling; it makes the final image match the host UID/GID used by
+# Docker Compose.
 RUN set -eux; \
-    if ! getent group "${USER_GID}" >/dev/null; then \
-      groupadd --gid "${USER_GID}" "${USERNAME}"; \
+    if ! getent group "\${USER_GID}" >/dev/null; then \
+      groupadd --gid "\${USER_GID}" "\${USERNAME}"; \
     fi; \
-    if id -u "${USERNAME}" >/dev/null 2>&1; then \
-      usermod --uid "${USER_UID}" --gid "${USER_GID}" "${USERNAME}"; \
+    if id -u "\${USERNAME}" >/dev/null 2>&1; then \
+      usermod --uid "\${USER_UID}" --gid "\${USER_GID}" "\${USERNAME}"; \
     else \
-      useradd --uid "${USER_UID}" --gid "${USER_GID}" --create-home --shell /bin/bash "${USERNAME}"; \
+      useradd --uid "\${USER_UID}" --gid "\${USER_GID}" --create-home --shell /bin/bash "\${USERNAME}"; \
     fi; \
-    mkdir -p "/home/${USERNAME}" /workspace; \
-    chown -R "${USER_UID}:${USER_GID}" "/home/${USERNAME}" /workspace
+    mkdir -p "/home/\${USERNAME}" /workspace; \
+    chown -R "\${USER_UID}:\${USER_GID}" "/home/\${USERNAME}" /workspace
 
-USER ${USERNAME}
+USER \${USERNAME}
 WORKDIR /workspace
 
-ENV HOME=/home/${USERNAME}
-ENV PATH=${HOME}/.local/bin:${PATH}
+ENV HOME=/home/\${USERNAME}
+ENV PATH=\${HOME}/.local/bin:\${PATH}
 DOCKERFILE
   echo "Created $PROJECT_DOCKERFILE"
 else
