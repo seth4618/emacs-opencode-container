@@ -2,9 +2,18 @@
 set -euo pipefail
 source "$(dirname "$0")/_common.sh"
 
-echo "Running dev-init.sh..."
-if ! "$(dirname "$0")/dev-init.sh"; then
-  echo "dev-init.sh failed; aborting dev-up." >&2
+load_context
+
+missing_init_files=()
+[[ -f "$PROJECT_ENV_FILE" ]] || missing_init_files+=("$PROJECT_ENV_FILE")
+[[ -f "$PROJECT_DOTDIR/Dockerfile" ]] || missing_init_files+=("$PROJECT_DOTDIR/Dockerfile")
+[[ -f "$PROJECT_DOTDIR/.gitignore" ]] || missing_init_files+=("$PROJECT_DOTDIR/.gitignore")
+[[ -f "$PROJECT_DOTDIR/opencode.env.template" ]] || missing_init_files+=("$PROJECT_DOTDIR/opencode.env.template")
+if (( ${#missing_init_files[@]} > 0 )); then
+  echo "dev-up.sh requires initialized dev-container files." >&2
+  echo "Missing:" >&2
+  printf '  %s\n' "${missing_init_files[@]}" >&2
+  echo "Run: scripts/dev-init.sh <base|coding|latex|everything|middle>" >&2
   exit 1
 fi
 
@@ -14,16 +23,8 @@ if ! "$(dirname "$0")/sync-elisp-helpers.sh"; then
   exit 1
 fi
 
-load_context
-
 # shellcheck disable=SC1090
 source "$PROJECT_ENV_FILE"
-
-BASE_IMAGE_NAME="${EOC_BASE_IMAGE:-eoc-base-container:latest}"
-if ! docker image inspect "$BASE_IMAGE_NAME" >/dev/null 2>&1; then
-  echo "Base image $BASE_IMAGE_NAME not found; building it now..."
-  EOC_SKIP_ELISP_SYNC=1 "$(dirname "$0")/dev-build-base.sh"
-fi
 
 SECRETS_LIST_FILE="${SECRETS_PATHS_FILE:-$REPO_ROOT/secrets-paths.txt}"
 

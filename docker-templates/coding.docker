@@ -1,0 +1,12 @@
+ARG BASE_IMAGE=eoc-base-container:latest
+FROM ${BASE_IMAGE}
+
+# JavaScript / Python / Solidity tooling.
+RUN npm install -g \
+    pnpm \
+    typescript \
+    typescript-language-server \
+    pyright \
+    solhint \
+    hardhat \
+    @nomicfoundation/solidity-language-server

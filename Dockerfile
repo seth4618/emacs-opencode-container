@@ -2,6 +2,7 @@ FROM ubuntu:24.04
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG EOC_TOOLKIT_REV=unknown
+ARG OPENCODE_NPM_PACKAGE=opencode-ai
 
 LABEL org.opencontainers.image.title="eoc-base-container" \
       org.opencontainers.image.description="Base image for Emacs/OpenCode dev containers" \
@@ -28,6 +29,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g "$OPENCODE_NPM_PACKAGE"
 
 COPY docker/entrypoint.sh /usr/local/bin/container-entrypoint
 COPY docker/load-runtime-env.sh /usr/local/bin/load-runtime-env
