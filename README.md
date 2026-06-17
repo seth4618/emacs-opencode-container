@@ -139,7 +139,7 @@ When you run `dev-up.sh`, it:
 
 1. Resolves the target git repo root (`git rev-parse --show-toplevel`).
 2. Ensures `.devcontainer` exists by running `dev-init.sh`.
-3. Syncs the external `opencode.el` helper checkout by running `sync-elisp-helpers.sh`.
+3. Syncs the external `.devcontainer/elisp-helpers/opencode.el` helper checkout by running `sync-elisp-helpers.sh`.
 4. Builds `eoc-base-container:latest` automatically if that base image is missing.
 5. Loads `<repo>/.devcontainer/.env`.
 6. Bootstraps common home via `setup-common-home.sh`.
@@ -198,7 +198,7 @@ There is no `src/` directory in the current repository. The shell scripts under 
 - `new-worktree.sh` / `new-disposable-branch.sh`: helper workflows for git branches/worktrees.
 - `setup-common-home.sh`: manage shared `HOST_COMMON_HOME` template files.
 - `test-common-home.sh`: validate common-home bootstrap behavior.
-- `sync-elisp-helpers.sh`: clone/update the external `opencode.el` helper checkout used by the base image build.
+- `sync-elisp-helpers.sh`: clone/update the external `.devcontainer/elisp-helpers/opencode.el` helper checkout used by the base image build.
 
 ### In-container entry wrappers
 
