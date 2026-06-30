@@ -194,7 +194,12 @@ There is no `src/` directory in the current repository. The shell scripts under 
 
 - `check-wayland.sh`: inspect Wayland-related container readiness for GUI Emacs.
 - `sync-status.sh`: show container and host git status summary.
-- `new-worktree.sh` / `new-disposable-branch.sh`: helper workflows for git branches/worktrees.
+- `new-worktree.sh`: host-side helper that creates a persistent sibling worktree
+  named `<repo>-<branch-or-name>`, reuses an existing branch or creates a new one,
+  and runs `dev-init.sh` in the new worktree so it gets its own local
+  `.devcontainer/.env`, Compose project name, container, and project image layer
+  while sharing the configured base/template image.
+- `new-disposable-branch.sh`: helper workflow for quick disposable branches.
 - `setup-common-home.sh`: manage shared `HOST_COMMON_HOME` template files.
 - `test-common-home.sh`: validate common-home bootstrap behavior.
 - `sync-elisp-helpers.sh`: clone/update the external `.devcontainer/elisp-helpers/opencode.el` helper checkout used by the base image build.
@@ -215,6 +220,7 @@ Primary lightweight regression check for this toolkit:
 ```bash
 scripts/test-common-home.sh
 scripts/test-dev-init.sh coding
+scripts/test-new-worktree.sh
 ```
 
 From a repo using this system:
