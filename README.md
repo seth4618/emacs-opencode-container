@@ -198,7 +198,10 @@ There is no `src/` directory in the current repository. The shell scripts under 
   named `<repo>-<branch-or-name>`, reuses an existing branch or creates a new one,
   and runs `dev-init.sh` in the new worktree so it gets its own local
   `.devcontainer/.env`, Compose project name, container, and project image layer
-  while sharing the configured base/template image.
+  while sharing the configured base/template image. By default it must be run
+  from the host repo on `main`; set `WORKTREE_BASE_BRANCH=<branch>` for repos
+  whose integration branch is not `main`, or `ALLOW_NON_BASE_BRANCH=1` when you
+  intentionally want to bypass that safety check.
 - `new-disposable-branch.sh`: helper workflow for quick disposable branches.
 - `setup-common-home.sh`: manage shared `HOST_COMMON_HOME` template files.
 - `test-common-home.sh`: validate common-home bootstrap behavior.

@@ -6,6 +6,8 @@ BRANCH_NAME="${1:-}"
 WORKTREE_NAME="${2:-}"
 ALLOW_DIRTY="${ALLOW_DIRTY:-0}"
 EOC_ALLOW_CONTAINER_WORKTREE="${EOC_ALLOW_CONTAINER_WORKTREE:-0}"
+WORKTREE_BASE_BRANCH="${WORKTREE_BASE_BRANCH:-main}"
+ALLOW_NON_BASE_BRANCH="${ALLOW_NON_BASE_BRANCH:-0}"
 
 usage() {
   cat <<USAGE
@@ -24,6 +26,8 @@ Environment:
   ALLOW_DIRTY=1                  allow creating a worktree from a dirty repo
   DEV_INIT_IMAGE_KIND=<kind>     override dev-init image kind for the new tree
   EOC_ALLOW_CONTAINER_WORKTREE=1 bypass the managed-container safety check
+  WORKTREE_BASE_BRANCH=<branch>  branch the host repo must be on; default: main
+  ALLOW_NON_BASE_BRANCH=1        bypass the host base-branch safety check
 USAGE
 }
 
@@ -93,6 +97,21 @@ infer_dev_init_image_kind() {
   esac
 }
 
+current_branch="$(git -C "$REPO_ROOT" symbolic-ref --quiet --short HEAD || true)"
+if [[ "$ALLOW_NON_BASE_BRANCH" != "1" && "$current_branch" != "$WORKTREE_BASE_BRANCH" ]]; then
+  cat >&2 <<ERROR
+Error: new-worktree.sh should be run from the host repo on '$WORKTREE_BASE_BRANCH'.
+Current branch: ${current_branch:-detached HEAD}
+
+Switch first:
+  git -C "$REPO_ROOT" switch "$WORKTREE_BASE_BRANCH"
+
+Or set WORKTREE_BASE_BRANCH=<branch> for repos that do not use main, or
+ALLOW_NON_BASE_BRANCH=1 if you intentionally want to create from this checkout.
+ERROR
+  exit 1
+fi
+
 if [[ "$ALLOW_DIRTY" != "1" && -n "$(git -C "$REPO_ROOT" status --porcelain)" ]]; then
   echo "Workspace is dirty. Commit/stash or re-run with ALLOW_DIRTY=1." >&2
   exit 1
@@ -112,7 +131,11 @@ image_kind="$(infer_dev_init_image_kind)"
 if git -C "$REPO_ROOT" show-ref --verify --quiet "refs/heads/$BRANCH_NAME"; then
   git -C "$REPO_ROOT" worktree add "$target_dir" "$BRANCH_NAME"
 else
-  git -C "$REPO_ROOT" worktree add -b "$BRANCH_NAME" "$target_dir"
+  if [[ "$ALLOW_NON_BASE_BRANCH" == "1" ]]; then
+    git -C "$REPO_ROOT" worktree add -b "$BRANCH_NAME" "$target_dir"
+  else
+    git -C "$REPO_ROOT" worktree add -b "$BRANCH_NAME" "$target_dir" "$WORKTREE_BASE_BRANCH"
+  fi
 fi
 
 DEV_REPO_ROOT="$target_dir" "$TOOL_HOME/scripts/dev-init.sh" "$image_kind"

@@ -39,7 +39,7 @@ assert_file_contains() {
 
 SOURCE_REPO="$tmpdir/my-repo"
 mkdir -p "$SOURCE_REPO"
-git -C "$SOURCE_REPO" init -q
+git -C "$SOURCE_REPO" init -q --initial-branch=main
 git -C "$SOURCE_REPO" config user.email test@example.invalid
 git -C "$SOURCE_REPO" config user.name "Test User"
 
@@ -89,5 +89,15 @@ if [[ "$(git -C "$SECOND_WORKTREE" branch --show-current)" != "existing/example"
   echo "FAIL: expected existing existing/example branch in second worktree" >&2
   exit 1
 fi
+
+git -C "$SOURCE_REPO" switch -q -c side/not-main
+if PATH="$fakebin:$PATH" \
+  DEV_REPO_ROOT="$SOURCE_REPO" \
+  EOC_ALLOW_CONTAINER_WORKTREE=1 \
+  "$REPO_ROOT/scripts/new-worktree.sh" feature/should-fail >"$tmpdir/new-worktree-non-main.out" 2>&1; then
+  echo "FAIL: expected new-worktree to reject non-main source branch" >&2
+  exit 1
+fi
+assert_file_contains "$tmpdir/new-worktree-non-main.out" "should be run from the host repo on 'main'"
 
 printf 'PASS: new-worktree creates host-side sibling worktrees and initializes devcontainer files\n'
