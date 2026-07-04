@@ -44,6 +44,13 @@ services:
       - type: bind
         source: ${HOST_REPO_PATH}
         target: /workspace/${WORKSPACE_DIRNAME}
+      # Git worktrees contain a .git file that points back to the primary
+      # checkout's common .git directory. Mount that common directory at the
+      # same absolute path it has on the host so git works inside containers
+      # whose /workspace mount only contains the linked worktree.
+      - type: bind
+        source: ${HOST_GIT_COMMON_DIR}
+        target: ${HOST_GIT_COMMON_DIR}
       - type: bind
         source: ${HOST_SECRETS_BUNDLE_DIR:-./.runtime/secrets}
         target: /secrets

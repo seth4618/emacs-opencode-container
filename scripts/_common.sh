@@ -14,6 +14,16 @@ resolve_repo_root() {
   }
 }
 
+resolve_git_common_dir() {
+  local repo_root="$1"
+  local git_common_dir
+  if git_common_dir="$(git -C "$repo_root" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)"; then
+    echo "$git_common_dir"
+    return
+  fi
+  echo "$repo_root/.git"
+}
+
 load_context() {
   REPO_ROOT="$(resolve_repo_root)"
   PROJECT_DOTDIR="$REPO_ROOT/.devcontainer"
@@ -27,6 +37,12 @@ load_context() {
   fi
   if [[ -f "$PROJECT_COMPOSE_ENV_FILE" ]]; then
     runtime_env_args+=(--env-file "$PROJECT_COMPOSE_ENV_FILE")
+  fi
+  if [[ -z "${HOST_GIT_COMMON_DIR:-}" ]] \
+    && ! { [[ -f "$PROJECT_ENV_FILE" ]] && grep -Eq '^[[:space:]]*HOST_GIT_COMMON_DIR=' "$PROJECT_ENV_FILE"; } \
+    && ! { [[ -f "$PROJECT_COMPOSE_ENV_FILE" ]] && grep -Eq '^[[:space:]]*HOST_GIT_COMMON_DIR=' "$PROJECT_COMPOSE_ENV_FILE"; }; then
+    HOST_GIT_COMMON_DIR="$(resolve_git_common_dir "$REPO_ROOT")"
+    export HOST_GIT_COMMON_DIR
   fi
 }
 

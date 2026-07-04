@@ -6,6 +6,7 @@ REPO_ROOT="$(resolve_repo_root)"
 PROJECT_DOTDIR="$REPO_ROOT/.devcontainer"
 PROJECT_RUNTIME_DIR="$PROJECT_DOTDIR/.runtime"
 PROJECT_ENV_FILE="$PROJECT_DOTDIR/.env"
+HOST_GIT_COMMON_DIR="$(resolve_git_common_dir "$REPO_ROOT")"
 
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" || $# -ne 1 ]]; then
   cat <<USAGE
@@ -107,12 +108,31 @@ ensure_valid_compose_project_name() {
   echo "Updated invalid COMPOSE_PROJECT_NAME=$current_value to COMPOSE_PROJECT_NAME=$replacement"
 }
 
+ensure_host_git_common_dir() {
+  local current_line tmp_file
+  current_line="$(grep -E '^[[:space:]]*HOST_GIT_COMMON_DIR=' "$PROJECT_ENV_FILE" | tail -n1 || true)"
+  if [[ -z "$current_line" ]]; then
+    printf '\nHOST_GIT_COMMON_DIR=%s\n' "$HOST_GIT_COMMON_DIR" >> "$PROJECT_ENV_FILE"
+    echo "Added HOST_GIT_COMMON_DIR=$HOST_GIT_COMMON_DIR"
+    return
+  fi
+
+  tmp_file="$(mktemp)"
+  awk -v replacement="HOST_GIT_COMMON_DIR=$HOST_GIT_COMMON_DIR" '
+    BEGIN { replaced = 0 }
+    /^[[:space:]]*HOST_GIT_COMMON_DIR=/ && !replaced { print replacement; replaced = 1; next }
+    { print }
+  ' "$PROJECT_ENV_FILE" > "$tmp_file"
+  mv "$tmp_file" "$PROJECT_ENV_FILE"
+}
+
 mkdir -p "$PROJECT_RUNTIME_DIR/secrets"
 
 if [[ ! -f "$PROJECT_ENV_FILE" ]]; then
   cat > "$PROJECT_ENV_FILE" <<ENV
 # Required
 HOST_REPO_PATH=$REPO_ROOT
+HOST_GIT_COMMON_DIR=$HOST_GIT_COMMON_DIR
 WAYLAND_SOCKET_PATH=/run/user/$(id -u)/wayland-0
 
 # Optional
@@ -131,6 +151,7 @@ else
 fi
 
 ensure_valid_compose_project_name
+ensure_host_git_common_dir
 
 PROJECT_GITIGNORE="$PROJECT_DOTDIR/.gitignore"
 if [[ ! -f "$PROJECT_GITIGNORE" ]]; then

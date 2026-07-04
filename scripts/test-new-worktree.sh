@@ -73,6 +73,7 @@ if [[ "$current_branch" != "feature/example" ]]; then
 fi
 
 assert_file_contains "$WORKTREE/.devcontainer/.env" "HOST_REPO_PATH=$WORKTREE"
+assert_file_contains "$WORKTREE/.devcontainer/.env" "HOST_GIT_COMMON_DIR=$SOURCE_REPO/.git"
 assert_file_contains "$WORKTREE/.devcontainer/.env" "COMPOSE_PROJECT_NAME=my-repo-feature-example-dev"
 assert_file_contains "$WORKTREE/.devcontainer/.env" "EOC_BASE_IMAGE=eoc-coding-container:latest"
 assert_file_contains "$WORKTREE/.devcontainer/Dockerfile" "ARG BASE_IMAGE=eoc-coding-container:latest"

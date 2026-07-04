@@ -6,6 +6,9 @@ The current runtime model is:
 
 - **Common home**: shared host home fragments (`HOST_COMMON_HOME`) mounted into the container for Bash and Emacs startup.
 - **Project checkout**: the target git repo bind-mounted read/write at `/workspace/<repo-name>`.
+- **Git common directory**: the checkout's common `.git` directory is also
+  mounted at its original host path so linked worktrees can resolve their
+  `.git` metadata inside the container.
 - **Repo-local runtime**: generated env, copied secrets, and OpenCode state under `<repo>/.devcontainer/.runtime`.
 - **Project image layer**: an editable, committed `<repo>/.devcontainer/Dockerfile` built on the shared `eoc-base-container:latest` image.
 - **Shared OpenCode auth/config**: optional host mounts for `/opencode-share` and `/opencode-config`, separate from repo-local runtime state.
@@ -63,6 +66,7 @@ This creates:
 `dev-init.sh` seeds the usual required values automatically:
 
 - `HOST_REPO_PATH` defaults to the current repo root.
+- `HOST_GIT_COMMON_DIR` defaults to the repo's absolute `git rev-parse --git-common-dir` result.
 - `WAYLAND_SOCKET_PATH` defaults to `/run/user/<uid>/wayland-0`.
 - `COMPOSE_PROJECT_NAME` defaults to a Docker Compose-safe version of `<repo-name>-dev` (lowercase, starts with a letter or digit, and contains only lowercase letters, digits, hyphens, and underscores). For example, a repo named `BRAINS26` becomes `brains26-dev`.
 
