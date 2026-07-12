@@ -43,6 +43,7 @@ assert_file_contains() {
 
 PROJECT_DOCKERFILE="$TARGET_REPO/.devcontainer/Dockerfile"
 assert_file_contains "$TARGET_REPO/.devcontainer/.env" "COMPOSE_PROJECT_NAME=example-repo-dev"
+assert_file_contains "$TARGET_REPO/.devcontainer/.env" "HOST_GIT_COMMON_DIR=$TARGET_REPO/.git"
 assert_file_contains "$TARGET_REPO/.devcontainer/.env" "EOC_BASE_IMAGE=eoc-coding-container:latest"
 assert_file_contains "$TARGET_REPO/.devcontainer/.gitignore" ".runtime/"
 assert_file_contains "$PROJECT_DOCKERFILE" "ARG BASE_IMAGE=eoc-coding-container:latest"

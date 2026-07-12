@@ -6,6 +6,9 @@ The current runtime model is:
 
 - **Common home**: shared host home fragments (`HOST_COMMON_HOME`) mounted into the container for Bash and Emacs startup.
 - **Project checkout**: the target git repo bind-mounted read/write at `/workspace/<repo-name>`.
+- **Git common directory**: the checkout's common `.git` directory is also
+  mounted at its original host path so linked worktrees can resolve their
+  `.git` metadata inside the container.
 - **Repo-local runtime**: generated env, copied secrets, and OpenCode state under `<repo>/.devcontainer/.runtime`.
 - **Project image layer**: an editable, committed `<repo>/.devcontainer/Dockerfile` built on the shared `eoc-base-container:latest` image.
 - **Shared OpenCode auth/config**: optional host mounts for `/opencode-share` and `/opencode-config`, separate from repo-local runtime state.
@@ -63,6 +66,7 @@ This creates:
 `dev-init.sh` seeds the usual required values automatically:
 
 - `HOST_REPO_PATH` defaults to the current repo root.
+- `HOST_GIT_COMMON_DIR` defaults to the repo's absolute `git rev-parse --git-common-dir` result.
 - `WAYLAND_SOCKET_PATH` defaults to `/run/user/<uid>/wayland-0`.
 - `COMPOSE_PROJECT_NAME` defaults to a Docker Compose-safe version of `<repo-name>-dev` (lowercase, starts with a letter or digit, and contains only lowercase letters, digits, hyphens, and underscores). For example, a repo named `BRAINS26` becomes `brains26-dev`.
 
@@ -194,7 +198,15 @@ There is no `src/` directory in the current repository. The shell scripts under 
 
 - `check-wayland.sh`: inspect Wayland-related container readiness for GUI Emacs.
 - `sync-status.sh`: show container and host git status summary.
-- `new-worktree.sh` / `new-disposable-branch.sh`: helper workflows for git branches/worktrees.
+- `new-worktree.sh`: host-side helper that creates a persistent sibling worktree
+  named `<repo>-<branch-or-name>`, reuses an existing branch or creates a new one,
+  and runs `dev-init.sh` in the new worktree so it gets its own local
+  `.devcontainer/.env`, Compose project name, container, and project image layer
+  while sharing the configured base/template image. By default it must be run
+  from the host repo on `main`; set `WORKTREE_BASE_BRANCH=<branch>` for repos
+  whose integration branch is not `main`, or `ALLOW_NON_BASE_BRANCH=1` when you
+  intentionally want to bypass that safety check.
+- `new-disposable-branch.sh`: helper workflow for quick disposable branches.
 - `setup-common-home.sh`: manage shared `HOST_COMMON_HOME` template files.
 - `test-common-home.sh`: validate common-home bootstrap behavior.
 - `sync-elisp-helpers.sh`: clone/update the external `.devcontainer/elisp-helpers/opencode.el` helper checkout used by the base image build.
@@ -215,6 +227,7 @@ Primary lightweight regression check for this toolkit:
 ```bash
 scripts/test-common-home.sh
 scripts/test-dev-init.sh coding
+scripts/test-new-worktree.sh
 ```
 
 From a repo using this system:

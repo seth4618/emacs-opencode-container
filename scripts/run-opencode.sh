@@ -9,5 +9,5 @@ if ! command -v opencode >/dev/null 2>&1; then
   exit 1
 fi
 
-exec opencode \"\$@\"
+exec opencode \"\$@\" 2> /tmp/opencode.errs
 " -- "$@"
