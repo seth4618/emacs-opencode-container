@@ -114,3 +114,4 @@ OPENCODE_MODEL=${OPENCODE_MODEL:-}
 ENV
 
 run_compose up -d --build "$@"
+record_container_baseline
