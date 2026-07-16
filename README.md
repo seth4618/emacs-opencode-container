@@ -43,6 +43,14 @@ command -v dev-init.sh coding
 - Git
 - A Wayland socket path for GUI Emacs mode (terminal Emacs does not need Wayland)
 
+5. If you change the Dockerfile, remember to run
+   ```
+   scripts/dev-build-image.sh base
+   for image in base coding everything latex middle; do
+      scripts/dev-build-image.sh "$image"
+   done
+   ```
+
 ## Per-repository setup and usage
 
 Run these commands **from inside the git repository** you want to develop in.
