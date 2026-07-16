@@ -34,7 +34,9 @@ source ~/.bashrc
 
 ```bash
 command -v dev-up.sh
-command -v dev-init.sh coding
+command -v dev-stop.sh
+command -v dev-resume.sh
+command -v dev-init.sh
 ```
 
 4. Ensure prerequisites exist on the host:
@@ -138,12 +140,22 @@ This writes missing values only:
 
 Docker Compose requires project names to match its lowercase project-name format because Compose uses the value to derive Docker resource names, labels, and network/container identifiers. If an older `.devcontainer/.env` contains an invalid value such as `COMPOSE_PROJECT_NAME=BRAINS26-dev`, rerun `dev-init.sh` or `dev-up.sh`; `dev-init.sh` will rewrite it to a valid lowercase form such as `brains26-dev`.
 
-8. Inspect status or stop the container:
+8. Inspect status, stop the container without removing it, or remove it:
 
 ```bash
 dev-status.sh
-dev-down.sh
+dev-stop.sh       # reclaim container CPU/RAM while preserving the container
+dev-resume.sh     # restart that container without rebuilding it
+dev-down.sh       # remove the container and Compose network
 ```
+
+Use `dev-stop.sh` when you are temporarily stepping away from a project. It
+stops the container's processes, releasing their CPU and RAM, while retaining
+the container for a quick `dev-resume.sh`. Resume checks whether Dockerfiles,
+Compose/environment configuration, templates, or configured secrets changed
+since the last successful `dev-up.sh`; it warns about drift but still starts
+the existing container. Run `dev-up.sh` explicitly when you want those changes
+applied through the normal refresh and rebuild workflow.
 
 ## What `dev-up.sh` does
 
@@ -158,6 +170,7 @@ When you run `dev-up.sh`, it:
 7. Rebuilds `<repo>/.devcontainer/.runtime/secrets` from `secrets-paths.txt`.
 8. Regenerates `<repo>/.devcontainer/.runtime/compose.env`.
 9. Runs Docker Compose using this repository's root `docker-compose.yml` and the repo's `<repo>/.devcontainer/Dockerfile`.
+10. Records a runtime-only fingerprint of the container build/configuration inputs and configured secret sources so `dev-resume.sh` can warn about drift later.
 
 Secrets are materialized into `<repo>/.devcontainer/.runtime/secrets` as real files/directories during `dev-up.sh` (not host-path symlinks), then mounted at `/secrets` in the container. Re-run `dev-up.sh` after changing `secrets-paths.txt` entries or secret file contents.
 
@@ -195,11 +208,13 @@ There is no `src/` directory in the current repository. The shell scripts under 
 - `dev-init.sh`: create `<repo>/.devcontainer` scaffolding, including the repo `.env` template and editable project Dockerfile.
 - `dev-build-base.sh`: build the shared `eoc-base-container:latest` base image from this toolkit checkout.
 - `dev-up.sh`: bootstrap common home, sync helper elisp, ensure the base image exists, generate runtime env/secrets, and build/start the project container.
-- `dev-shell.sh`: open an interactive shell in the running container, auto-starting it if needed.
+- `dev-stop.sh`: stop the project container without removing it, reclaiming its active CPU and RAM while preserving it for a quick resume.
+- `dev-resume.sh`: start an existing stopped container without rebuilding it, warning if tracked container inputs changed; fall back to `dev-up.sh` if no container exists.
+- `dev-shell.sh`: open an interactive shell in the running container, automatically using `dev-resume.sh` if needed.
 - `dev-emacs.sh`: launch Emacs in terminal or GUI mode.
 - `dev-opencode.sh`: run OpenCode in container context.
 - `dev-status.sh`: print resolved repo/context paths and Docker Compose status.
-- `dev-down.sh`: stop the container for the current repo context.
+- `dev-down.sh`: stop and remove the container and Compose network for the current repo context.
 - `dev-bootstrap-opencode.sh`: seed shared OpenCode/common-home defaults without overwriting existing values.
 
 ### Supporting host commands

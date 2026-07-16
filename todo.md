@@ -37,11 +37,13 @@ All current scripts in `scripts/` have a purpose and should stay unless the over
 
 - `dev-init.sh` - creates per-repo `.devcontainer` scaffolding.
 - `dev-up.sh` - initializes, syncs elisp helpers, writes runtime env/secrets, and starts Compose.
+- `dev-stop.sh` - stops the current repo container without removing it.
+- `dev-resume.sh` - resumes a stopped container without rebuilding, or falls back to `dev-up.sh`.
 - `dev-shell.sh` - user-friendly wrapper for an interactive container shell.
 - `dev-emacs.sh` - user-friendly wrapper for terminal or GUI Emacs.
 - `dev-opencode.sh` - user-friendly wrapper for OpenCode.
 - `dev-status.sh` - prints resolved paths and Compose status.
-- `dev-down.sh` - stops the current repo container.
+- `dev-down.sh` - stops and removes the current repo container and Compose network.
 - `dev-bootstrap-opencode.sh` - seeds common OpenCode/common-home defaults.
 
 ### Supporting commands
@@ -70,4 +72,3 @@ All current scripts in `scripts/` have a purpose and should stay unless the over
 - Consider adding tests for generated `.devcontainer/.runtime/compose.env` and secrets bundle behavior.
 - Consider documenting or automating the temporary OpenCode OAuth callback port workflow.
 - Consider whether `sync-elisp-helpers.sh` should be optional during `dev-up.sh` to avoid network work on every update.
-
