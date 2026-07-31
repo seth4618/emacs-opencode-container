@@ -73,6 +73,7 @@ def main():
         sessions = json.loads(raw_json)
     except json.JSONDecodeError:
         print("Failed to parse JSON output from opencode.", file=sys.stderr)
+        print(raw_json)
         sys.exit(1)
         
     if not sessions:

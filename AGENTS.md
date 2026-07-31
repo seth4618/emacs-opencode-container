@@ -5,7 +5,7 @@
 - Emacs startup is split on purpose: `home-template/.emacs.d/init.el` is the common-home entrypoint, and it loads the repo-specific config from `emacs.d/init.el` through the `repo-emacs.d` symlink.
 
 ## High-Value Paths
-- `scripts/`: canonical behavior for `dev-init.sh`, `dev-up.sh`, `dev-shell.sh`, `dev-emacs.sh`, `dev-opencode.sh`, `dev-status.sh`, `dev-down.sh`.
+- `scripts/`: canonical behavior for `dev-init.sh`, `dev-up.sh`, `dev-stop.sh`, `dev-resume.sh`, `dev-shell.sh`, `dev-emacs.sh`, `dev-opencode.sh`, `dev-status.sh`, `dev-down.sh`.
 - `docker-compose.yml`: mounts, OpenCode state/config locations, container working directory, and cache paths.
 - `docker/load-runtime-env.sh`: actual env-loading order inside the container.
 - `home-template/`: files copied into `HOST_COMMON_HOME` by `setup-common-home.sh`.
@@ -15,7 +15,8 @@
 ## Command Reality
 - Run repo commands through the shell scripts, not raw `docker compose`; the scripts resolve repo context, load both env files, and auto-start the container when needed.
 - `scripts/dev-up.sh` always runs `scripts/dev-init.sh` first, then `scripts/sync-elisp-helpers.sh`, then rebuilds `.devcontainer/.runtime/compose.env` and `.devcontainer/.runtime/secrets/`, then runs `docker compose up -d --build`.
-- `scripts/dev-shell.sh`, `scripts/dev-emacs.sh`, and `scripts/dev-opencode.sh` all auto-start the container via `ensure_running` if it is down.
+- `scripts/dev-stop.sh` stops without removing the container; `scripts/dev-resume.sh` starts that existing container without rebuilding, or falls back to `scripts/dev-up.sh` if none exists.
+- `scripts/dev-shell.sh`, `scripts/dev-emacs.sh`, and `scripts/dev-opencode.sh` all auto-resume the container via `ensure_running` if it is down.
 - Commands resolve the target repo with `git rev-parse --show-toplevel`; use `DEV_REPO_ROOT` only if you intentionally need to override that.
 
 ## Verification
