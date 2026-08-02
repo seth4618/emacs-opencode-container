@@ -6,6 +6,12 @@ if [[ $- == *i* ]]; then
   PS1="${PS1:-\\u@\\h:\\w\\$ }"
 fi
 
+# Make common-home commands available without duplicating PATH entries.
+case ":$PATH:" in
+  *":$HOME/.local/bin:"*) ;;
+  *) export PATH="$HOME/.local/bin:$PATH" ;;
+esac
+
 # Populate COMPOSE_PROJECT_NAME from devcontainer env files when missing.
 if [[ -z "${COMPOSE_PROJECT_NAME:-}" ]]; then
   __container_bashrc_path="$(readlink -f "${BASH_SOURCE[0]}")"
