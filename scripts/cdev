@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+usage() {
+  cat <<'USAGE'
+Usage: cdev <command> [arguments]
+
+Primary commands:
+  init <base|template>  Initialize this repository's container config
+  up [args...]          Build and start the container
+  stop                  Stop the container without removing it
+  resume [args...]      Resume the existing container, or run up
+  down [args...]        Remove the container and Compose network
+  status                Show the resolved context and container status
+  shell                 Open a shell in the container
+  emacs [--terminal|--gui]
+                        Start Emacs in the container
+  opencode              Run OpenCode in the container
+
+Utility commands:
+  bootstrap-opencode    Seed shared OpenCode/common-home defaults
+  build-image <name>    Build the base or a template image
+  build-base [args...]  Build the shared base image (compatibility command)
+
+The existing dev-*.sh scripts remain available and are the implementation
+behind these subcommands. Run `cdev help` to show this message.
+USAGE
+}
+
+command_name="${1:-help}"
+if (( $# > 0 )); then
+  shift
+fi
+
+case "$command_name" in
+  help|-h|--help) usage ;;
+  init|up|stop|resume|down|status|shell|emacs|opencode)
+    exec "$SCRIPT_DIR/dev-${command_name}.sh" "$@"
+    ;;
+  bootstrap-opencode)
+    exec "$SCRIPT_DIR/dev-bootstrap-opencode.sh" "$@"
+    ;;
+  build-image)
+    exec "$SCRIPT_DIR/dev-build-image.sh" "$@"
+    ;;
+  build-base)
+    exec "$SCRIPT_DIR/dev-build-base.sh" "$@"
+    ;;
+  *)
+    echo "Error: unknown command: $command_name" >&2
+    echo "Run 'cdev help' for available commands." >&2
+    exit 2
+    ;;
+esac
