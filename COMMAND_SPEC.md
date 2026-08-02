@@ -42,6 +42,18 @@ If `REPO_ROOT` cannot be resolved, command exits with clear guidance.
 
 ## Commands
 
+### `cdev`
+
+The preferred user-facing command is a thin dispatcher to the existing shell
+scripts. `cdev <subcommand> [arguments]` preserves arguments exactly and
+replaces its process with the corresponding script, keeping those scripts as
+the canonical, independently runnable implementation.
+
+Core subcommands are `init`, `up`, `stop`, `resume`, `down`, `status`, `shell`,
+`emacs`, and `opencode`. Utility subcommands are `bootstrap-opencode`,
+`build-image`, and `build-base`. With no arguments, or with `help`, `-h`, or
+`--help`, it prints usage; an unknown subcommand exits with status 2.
+
 ### `dev-init`
 
 Bootstrap per-repo `.devcontainer` config.

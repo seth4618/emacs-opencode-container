@@ -1,6 +1,6 @@
-# Emacs + OpenCode Dev Container (Central `dev-*` Commands)
+# Emacs + OpenCode Dev Container (`cdev`)
 
-This repository is a **centralized dev-container toolkit**, not a single application. Install or put the `scripts/` directory on your `PATH`, then run the `dev-*` commands from any git repository you want to develop in.
+This repository is a **centralized dev-container toolkit**, not a single application. Put the `scripts/` directory on your `PATH`, then run the `cdev` command from any git repository you want to develop in. The individual `dev-*.sh` scripts remain available as transparent, directly editable entrypoints; `cdev` is a thin subcommand dispatcher over them.
 
 The current runtime model is:
 
@@ -33,10 +33,8 @@ source ~/.bashrc
 3. Verify commands are discoverable:
 
 ```bash
-command -v dev-up.sh
-command -v dev-stop.sh
-command -v dev-resume.sh
-command -v dev-init.sh
+command -v cdev
+cdev help
 ```
 
 4. Ensure prerequisites exist on the host:
@@ -60,7 +58,7 @@ Run these commands **from inside the git repository** you want to develop in.
 1. Initialize repo-local container config:
 
 ```bash
-dev-init.sh coding
+cdev init coding
 ```
 
 This creates:
@@ -95,27 +93,27 @@ Common optional values include:
 3. Start or update the container:
 
 ```bash
-dev-up.sh
+cdev up
 ```
 
 4. Open a shell in the container:
 
 ```bash
-dev-shell.sh
+cdev shell
 ```
 
 5. Start Emacs:
 
 ```bash
-dev-emacs.sh --terminal
+cdev emacs --terminal
 # or
-dev-emacs.sh --gui
+cdev emacs --gui
 ```
 
 6. Run OpenCode:
 
 ```bash
-dev-opencode.sh
+cdev opencode
 ```
 
 Copy the template when configuring repo-specific OpenCode provider settings:
@@ -127,7 +125,7 @@ cp .devcontainer/opencode.env.template .devcontainer/opencode.env
 7. Optionally seed shared OpenCode/common-home defaults:
 
 ```bash
-dev-bootstrap-opencode.sh
+cdev bootstrap-opencode
 ```
 
 This writes missing values only:
@@ -143,10 +141,10 @@ Docker Compose requires project names to match its lowercase project-name format
 8. Inspect status, stop the container without removing it, or remove it:
 
 ```bash
-dev-status.sh
-dev-stop.sh       # reclaim container CPU/RAM while preserving the container
-dev-resume.sh     # restart that container without rebuilding it
-dev-down.sh       # remove the container and Compose network
+cdev status
+cdev stop       # reclaim container CPU/RAM while preserving the container
+cdev resume     # restart that container without rebuilding it
+cdev down       # remove the container and Compose network
 ```
 
 Use `dev-stop.sh` when you are temporarily stepping away from a project. It
