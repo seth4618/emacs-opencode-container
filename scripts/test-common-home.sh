@@ -42,7 +42,20 @@ assert_file_equals() {
 assert_file_equals "$TARGET_HOME/.bashrc" "$REPO_ROOT/home-template/.bashrc"
 assert_file_equals "$TARGET_HOME/.emacs.d/init.el" "$REPO_ROOT/home-template/.emacs.d/init.el"
 assert_file_equals "$TARGET_HOME/.emacs.d/early-init.el" "$REPO_ROOT/home-template/.emacs.d/early-init.el"
+assert_file_equals "$TARGET_HOME/.local/bin/gen-bootstrap.py" "$REPO_ROOT/scripts/gen-bootstrap.py"
+assert_file_equals "$TARGET_HOME/.local/bin/dump-session.py" "$REPO_ROOT/scripts/dump-session.py"
+assert_file_equals "$TARGET_HOME/.local/bin/dump2md.py" "$REPO_ROOT/scripts/dump2md.py"
 assert_link "$TARGET_HOME/.emacs.d/repo-emacs.d" "/workspace/test-repo/emacs.d"
+
+for command_path in \
+  "$TARGET_HOME/.local/bin/gen-bootstrap.py" \
+  "$TARGET_HOME/.local/bin/dump-session.py" \
+  "$TARGET_HOME/.local/bin/dump2md.py"; do
+  if [[ ! -x "$command_path" ]]; then
+    echo "FAIL: expected executable command at $command_path" >&2
+    exit 1
+  fi
+done
 
 if [[ ! -f "$TARGET_HOME/.bashrc.local" ]]; then
   echo "FAIL: expected $TARGET_HOME/.bashrc.local to exist" >&2

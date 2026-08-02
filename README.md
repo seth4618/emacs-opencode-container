@@ -190,6 +190,9 @@ Later files win. Only files ending in `.env` under `/secrets` are sourced; non-`
   - `.bashrc`
   - `.emacs.d/init.el`
   - `.emacs.d/early-init.el`
+  - `.local/bin/gen-bootstrap.py`
+  - `.local/bin/dump-session.py`
+  - `.local/bin/dump2md.py`
 - symlink:
   - `.emacs.d/repo-emacs.d` -> `/workspace/<repo>/emacs.d`
 - local override stubs (if missing):
@@ -198,6 +201,10 @@ Later files win. Only files ending in `.env` under `/secrets` are sourced; non-`
   - `.emacs.d/early-init.local.el`
 
 Emacs Customize writes to `~/.emacs.d/init.local.el` (`custom-file`), keeping repo-managed defaults unchanged.
+
+The commands under `.local/bin` are refreshed from this toolkit's `scripts/`
+directory by `dev-up.sh`, mounted read-only in the container, and added to the
+common shell `PATH`.
 
 ## Script inventory
 

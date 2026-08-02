@@ -74,6 +74,10 @@ services:
         source: ${HOST_COMMON_HOME}/.bashrc.local
         target: /home/${CONTAINER_USER:-dev}/.bashrc.local
       - type: bind
+        source: ${HOST_COMMON_HOME}/.local/bin
+        target: /home/${CONTAINER_USER:-dev}/.local/bin
+        read_only: true
+      - type: bind
         source: ${HOST_SSH_DIR}
         target: /home/${CONTAINER_USER:-dev}/.ssh
         read_only: true

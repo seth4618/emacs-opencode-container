@@ -31,12 +31,19 @@ if [[ ! -d "$TEMPLATE_ROOT" ]]; then
   exit 1
 fi
 
-mkdir -p "$TARGET_HOME/.emacs.d"
+mkdir -p "$TARGET_HOME/.emacs.d" "$TARGET_HOME/.local/bin"
 
 install_file() {
   local src="$1"
   local dst="$2"
   install -m 0644 "$src" "$dst"
+  echo "install: $dst"
+}
+
+install_command() {
+  local src="$1"
+  local dst="$2"
+  install -m 0755 "$src" "$dst"
   echo "install: $dst"
 }
 
@@ -75,6 +82,9 @@ link_item() {
 install_file "$TEMPLATE_ROOT/.bashrc" "$TARGET_HOME/.bashrc"
 install_file "$TEMPLATE_ROOT/.emacs.d/init.el" "$TARGET_HOME/.emacs.d/init.el"
 install_file "$TEMPLATE_ROOT/.emacs.d/early-init.el" "$TARGET_HOME/.emacs.d/early-init.el"
+install_command "$SCRIPT_DIR/gen-bootstrap.py" "$TARGET_HOME/.local/bin/gen-bootstrap.py"
+install_command "$SCRIPT_DIR/dump-session.py" "$TARGET_HOME/.local/bin/dump-session.py"
+install_command "$SCRIPT_DIR/dump2md.py" "$TARGET_HOME/.local/bin/dump2md.py"
 
 ensure_local_file "$TARGET_HOME/.bashrc.local"
 ensure_local_file "$TARGET_HOME/.emacs.d/init.local.el"
