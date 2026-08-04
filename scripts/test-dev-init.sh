@@ -46,6 +46,7 @@ assert_file_contains "$TARGET_REPO/.devcontainer/.env" "COMPOSE_PROJECT_NAME=exa
 assert_file_contains "$TARGET_REPO/.devcontainer/.env" "HOST_GIT_COMMON_DIR=$TARGET_REPO/.git"
 assert_file_contains "$TARGET_REPO/.devcontainer/.env" "EOC_BASE_IMAGE=eoc-coding-container:latest"
 assert_file_contains "$TARGET_REPO/.devcontainer/.gitignore" ".runtime/"
+assert_file_contains "$TARGET_REPO/.devcontainer/.gitignore" "compose.override.yml"
 assert_file_contains "$PROJECT_DOCKERFILE" "ARG BASE_IMAGE=eoc-coding-container:latest"
 assert_file_contains "$PROJECT_DOCKERFILE" "FROM \${BASE_IMAGE}"
 assert_file_contains "$PROJECT_DOCKERFILE" "Required project user layer"

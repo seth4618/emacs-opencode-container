@@ -30,6 +30,7 @@ load_context() {
   PROJECT_ENV_FILE="$PROJECT_DOTDIR/.env"
   PROJECT_RUNTIME_DIR="$PROJECT_DOTDIR/.runtime"
   PROJECT_COMPOSE_ENV_FILE="$PROJECT_RUNTIME_DIR/compose.env"
+  PROJECT_COMPOSE_OVERRIDE_FILE="$PROJECT_DOTDIR/compose.override.yml"
   DEV_CONTAINER_STATE_FILE="$PROJECT_RUNTIME_DIR/dev-container-state"
 
   runtime_env_args=()
@@ -86,6 +87,7 @@ container_input_fingerprint() {
     fingerprint_path "$TOOL_HOME/Dockerfile"
     fingerprint_path "$TOOL_HOME/docker-templates"
     fingerprint_path "$PROJECT_DOTDIR/Dockerfile"
+    fingerprint_path "$PROJECT_COMPOSE_OVERRIDE_FILE"
     fingerprint_path "$PROJECT_ENV_FILE"
     fingerprint_path "$PROJECT_COMPOSE_ENV_FILE"
 
@@ -121,7 +123,11 @@ record_container_baseline() {
 
 run_compose() {
   load_context
-  (cd "$REPO_ROOT" && "${COMPOSE_CMD[@]}" -f "$TOOL_HOME/docker-compose.yml" "${runtime_env_args[@]}" "$@")
+  local compose_file_args=(-f "$TOOL_HOME/docker-compose.yml")
+  if [[ -f "$PROJECT_COMPOSE_OVERRIDE_FILE" ]]; then
+    compose_file_args+=(-f "$PROJECT_COMPOSE_OVERRIDE_FILE")
+  fi
+  (cd "$REPO_ROOT" && "${COMPOSE_CMD[@]}" "${compose_file_args[@]}" "${runtime_env_args[@]}" "$@")
 }
 
 ensure_running() {

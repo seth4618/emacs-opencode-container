@@ -20,6 +20,7 @@ This document defines a command-level spec for running the dev container tooling
 - **PROJECT_ENV_FILE**: `${PROJECT_DOTDIR}/.env`.
 - **PROJECT_RUNTIME_DIR**: `${PROJECT_DOTDIR}/.runtime`.
 - **PROJECT_COMPOSE_ENV_FILE**: `${PROJECT_RUNTIME_DIR}/compose.env`.
+- **PROJECT_COMPOSE_OVERRIDE_FILE**: `${PROJECT_DOTDIR}/compose.override.yml`.
 - **PROJECT_DOCKERFILE**: `${PROJECT_DOTDIR}/Dockerfile`.
 - **BASE_IMAGE**: shared toolkit image tag, default `eoc-base-container:latest`.
 
@@ -65,7 +66,7 @@ Bootstrap per-repo `.devcontainer` config.
 1. Ensure the selected layer image exists and is newer than its source Dockerfile; build `eoc-base-container:latest` for `base`, otherwise build `eoc-<name>-container:latest` from `docker-templates/<name>.docker`.
 2. Create `${PROJECT_DOTDIR}` and `${PROJECT_RUNTIME_DIR}` if absent.
 3. If `${PROJECT_ENV_FILE}` missing, create from template with required keys, comments, and `EOC_BASE_IMAGE` set to the selected image.
-4. If `${PROJECT_DOTDIR}/.gitignore` is missing, create one that ignores local env/runtime files but allows the project Dockerfile and templates to be committed.
+4. If `${PROJECT_DOTDIR}/.gitignore` is missing, create one that ignores local env/runtime files but allows project configuration, including the Dockerfile, Compose override, and templates, to be committed.
 5. If `${PROJECT_DOCKERFILE}` missing, create an editable project Dockerfile that starts from `${BASE_IMAGE}` and keeps the required final user layer for host UID/GID matching.
 6. If present, do not overwrite user-editable files.
 7. Print next steps: edit `.env` and `.devcontainer/Dockerfile`, run `dev-up`.
@@ -95,6 +96,7 @@ Create/update and start project container.
    - `--env-file ${PROJECT_ENV_FILE}`
    - `--env-file ${PROJECT_COMPOSE_ENV_FILE}`
    - compose definition from `TOOL_HOME/docker-compose.yml`
+   - optional project overrides from `${PROJECT_COMPOSE_OVERRIDE_FILE}` when present
    - build context `${HOST_REPO_PATH}`
    - dockerfile `${PROJECT_DOCKERFILE}`
 9. Start service `dev` with build.
