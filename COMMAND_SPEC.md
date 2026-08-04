@@ -20,6 +20,7 @@ This document defines a command-level spec for running the dev container tooling
 - **PROJECT_ENV_FILE**: `${PROJECT_DOTDIR}/.env`.
 - **PROJECT_RUNTIME_DIR**: `${PROJECT_DOTDIR}/.runtime`.
 - **PROJECT_COMPOSE_ENV_FILE**: `${PROJECT_RUNTIME_DIR}/compose.env`.
+- **PROJECT_COMPOSE_OVERRIDE_FILE**: `${PROJECT_DOTDIR}/compose.override.yml`.
 - **PROJECT_DOCKERFILE**: `${PROJECT_DOTDIR}/Dockerfile`.
 - **BASE_IMAGE**: shared toolkit image tag, default `eoc-base-container:latest`.
 
@@ -95,6 +96,7 @@ Create/update and start project container.
    - `--env-file ${PROJECT_ENV_FILE}`
    - `--env-file ${PROJECT_COMPOSE_ENV_FILE}`
    - compose definition from `TOOL_HOME/docker-compose.yml`
+   - optional project overrides from `${PROJECT_COMPOSE_OVERRIDE_FILE}` when present
    - build context `${HOST_REPO_PATH}`
    - dockerfile `${PROJECT_DOCKERFILE}`
 9. Start service `dev` with build.

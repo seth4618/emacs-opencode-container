@@ -57,6 +57,12 @@ ENV
 cat > "$target_repo/.devcontainer/Dockerfile" <<'DOCKERFILE'
 FROM eoc-base-container:latest
 DOCKERFILE
+cat > "$target_repo/.devcontainer/compose.override.yml" <<'COMPOSE'
+services:
+  dev:
+    ports:
+      - "127.0.0.1:3000:3000"
+COMPOSE
 cat > "$target_repo/.devcontainer/.runtime/compose.env" <<ENV
 HOST_REPO_PATH=$target_repo
 ENV
@@ -69,6 +75,7 @@ export FAKE_DOCKER_LOG="$docker_log"
 # shellcheck source=_common.sh
 source "$TOOLKIT_ROOT/scripts/_common.sh"
 record_container_baseline
+grep -Fq -- "-f $target_repo/.devcontainer/compose.override.yml" "$docker_log"
 
 "$TOOLKIT_ROOT/scripts/dev-stop.sh" > "$tmpdir/stop.out"
 [[ "$(cat "$docker_state")" == "stopped" ]]
@@ -80,7 +87,7 @@ grep -Fq 'without rebuilding it' "$tmpdir/resume.out"
 [[ ! -s "$tmpdir/resume.err" ]]
 
 "$TOOLKIT_ROOT/scripts/dev-stop.sh" >/dev/null
-printf '# changed\n' >> "$target_repo/.devcontainer/Dockerfile"
+printf '# changed\n' >> "$target_repo/.devcontainer/compose.override.yml"
 "$TOOLKIT_ROOT/scripts/dev-resume.sh" > "$tmpdir/drift.out" 2> "$tmpdir/drift.err"
 grep -Fq 'inputs have changed' "$tmpdir/drift.err"
 [[ "$(cat "$docker_state")" == "running" ]]

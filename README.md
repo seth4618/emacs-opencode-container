@@ -88,6 +88,27 @@ Common optional values include:
 - `OPENCODE_MODEL` (repo default model; falls back to `$HOST_COMMON_HOME/.opencode-common.env`)
 - cache/state/resource overrides such as `HOST_CACHE_DIR`, `CPU_LIMIT`, `MEM_LIMIT`, and `PIDS_LIMIT`
 
+To publish a server port to the host, create
+`<repo>/.devcontainer/compose.override.yml`. The command wrappers automatically
+merge this project-specific file with the toolkit Compose definition. For
+example, this binds a Node server on container port 3000 to localhost port 3000
+on the host:
+
+```yaml
+services:
+  dev:
+    ports:
+      - "127.0.0.1:3000:3000"
+```
+
+Then run `cdev up` to create or recreate the container with the mapping. Make
+sure the Node server listens on `0.0.0.0` inside the container, rather than only
+`127.0.0.1`; for example, use `npm run dev -- --host 0.0.0.0` when the server's
+CLI supports that option. Use a different left-hand port if the host port is
+already occupied (for example, `"127.0.0.1:8080:3000"`). Additional mappings
+can be added as more list entries. Omitting `127.0.0.1:` publishes on all host
+interfaces, which is normally unnecessary and less restrictive.
+
 `dev-init.sh` requires an image choice. Use `base` for only the shared OpenCode/Emacs base image, or use a template name from `docker-templates/` such as `coding`, `latex`, `everything`, or `middle`. The selected template image is built as `eoc-<name>-container:latest` when missing or older than its template Dockerfile. The generated project Dockerfile is intentionally small: it starts from the selected image and keeps only the required project user layer so Docker Compose can run with your host UID/GID. The generated `.devcontainer/.gitignore` ignores `.env`, `.runtime/`, and `opencode.env` while allowing `.devcontainer/Dockerfile`, `.devcontainer/.gitignore`, and `.devcontainer/opencode.env.template` to be committed.
 
 3. Start or update the container:
@@ -167,7 +188,7 @@ When you run `dev-up.sh`, it:
 6. Creates host cache, OpenCode, SSH, and repo-local runtime directories as needed.
 7. Rebuilds `<repo>/.devcontainer/.runtime/secrets` from `secrets-paths.txt`.
 8. Regenerates `<repo>/.devcontainer/.runtime/compose.env`.
-9. Runs Docker Compose using this repository's root `docker-compose.yml` and the repo's `<repo>/.devcontainer/Dockerfile`.
+9. Runs Docker Compose using this repository's root `docker-compose.yml`, automatically merges the repo's optional `<repo>/.devcontainer/compose.override.yml`, and uses the repo's `<repo>/.devcontainer/Dockerfile`.
 10. Records a runtime-only fingerprint of the container build/configuration inputs and configured secret sources so `dev-resume.sh` can warn about drift later.
 
 Secrets are materialized into `<repo>/.devcontainer/.runtime/secrets` as real files/directories during `dev-up.sh` (not host-path symlinks), then mounted at `/secrets` in the container. Re-run `dev-up.sh` after changing `secrets-paths.txt` entries or secret file contents.
@@ -407,14 +428,13 @@ Expected:
 
 Do OAuth once on the host (step 3), then restart the container. Because auth (`~/.local/share/opencode`) and config (`~/.config/opencode`) are both shared host mounts, containers in other repos should pick it up automatically.
 
-If you intentionally need to complete browser OAuth from inside the container, temporarily expose the callback port in `docker-compose.yml` and then run `dev-up.sh` again:
+If you intentionally need to complete browser OAuth from inside the container, temporarily expose the callback port in `<repo>/.devcontainer/compose.override.yml` and then run `dev-up.sh` again:
 
 ```yaml
-    init: true
+services:
+  dev:
     ports:
-      - "1455:1455"
-    security_opt:
-      - no-new-privileges:true
+      - "127.0.0.1:1455:1455"
 ```
 
 Remove that port mapping when OAuth setup is complete if you do not want the callback port exposed during normal development.
