@@ -156,6 +156,8 @@ ensure_host_git_common_dir
 PROJECT_GITIGNORE="$PROJECT_DOTDIR/.gitignore"
 if [[ ! -f "$PROJECT_GITIGNORE" ]]; then
   cat > "$PROJECT_GITIGNORE" <<'GITIGNORE'
+# Project configuration such as Dockerfile, compose.override.yml, and
+# opencode.env.template is intentionally committed.
 .env
 .runtime/
 opencode.env
