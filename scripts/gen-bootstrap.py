@@ -43,7 +43,11 @@ def main():
     print(f"Launching OpenCode pipeline and attaching {base_name}...")
 
     # Native attachment call using the -f flag
-    cmd = ["opencode", "run", instruction, "--file", json_path]
+    cmd = ["opencode", "run", instruction,
+           "--file", json_path,
+           "--model", "openai/gpt-5.5",
+           "--variant", "high"
+           ]
     pprint(cmd)
     
     try:
