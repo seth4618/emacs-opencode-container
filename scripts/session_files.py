@@ -8,14 +8,22 @@ import tempfile
 from pathlib import Path
 
 
-COMPRESSED_SUFFIX = ".bt"
+# Brotli's command-line tools conventionally use .br.  Keep accepting .bt
+# because early versions of these helpers documented and produced that suffix.
+COMPRESSED_SUFFIX = ".br"
+COMPRESSED_SUFFIXES = (COMPRESSED_SUFFIX, ".bt")
 COMPRESSION_THRESHOLD = 45 * 1024 * 1024
 
 
 def logical_path(path):
     """Return the uncompressed name represented by *path*."""
     path = Path(path)
-    return path.with_suffix("") if path.suffix == COMPRESSED_SUFFIX else path
+    return path.with_suffix("") if path.suffix in COMPRESSED_SUFFIXES else path
+
+
+def is_compressed(path):
+    """Return whether *path* uses a supported Brotli suffix."""
+    return Path(path).suffix in COMPRESSED_SUFFIXES
 
 
 def resolve_session_path(path):
@@ -23,19 +31,27 @@ def resolve_session_path(path):
     path = Path(path)
     if path.exists():
         return path
-    alternate = (
-        logical_path(path)
-        if path.suffix == COMPRESSED_SUFFIX
-        else Path(f"{path}{COMPRESSED_SUFFIX}")
-    )
-    return alternate if alternate.exists() else path
+    if is_compressed(path):
+        uncompressed = logical_path(path)
+        if uncompressed.exists():
+            return uncompressed
+        for suffix in COMPRESSED_SUFFIXES:
+            alternate = Path(f"{uncompressed}{suffix}")
+            if alternate.exists():
+                return alternate
+        return path
+    for suffix in COMPRESSED_SUFFIXES:
+        alternate = Path(f"{path}{suffix}")
+        if alternate.exists():
+            return alternate
+    return path
 
 
 @contextlib.contextmanager
 def open_session_text(path):
     """Open a plain or Brotli-compressed session as a text stream."""
     resolved = resolve_session_path(path)
-    if resolved.suffix != COMPRESSED_SUFFIX:
+    if not is_compressed(resolved):
         with resolved.open("r", encoding="utf-8") as handle:
             yield handle
         return
@@ -60,7 +76,7 @@ def open_session_text(path):
 def materialized_session(path):
     """Yield a real JSON path, temporarily decompressing when necessary."""
     resolved = resolve_session_path(path)
-    if resolved.suffix != COMPRESSED_SUFFIX:
+    if not is_compressed(resolved):
         yield resolved
         return
 
@@ -83,10 +99,11 @@ def materialized_session(path):
 
 
 def compress_if_large(path, threshold=COMPRESSION_THRESHOLD):
-    """Replace a dump larger than *threshold* with a quality-11 .bt file."""
+    """Replace a dump larger than *threshold* with a quality-11 .br file."""
     path = Path(path)
     if path.stat().st_size <= threshold:
-        Path(f"{path}{COMPRESSED_SUFFIX}").unlink(missing_ok=True)
+        for suffix in COMPRESSED_SUFFIXES:
+            Path(f"{path}{suffix}").unlink(missing_ok=True)
         return path
 
     compressed = Path(f"{path}{COMPRESSED_SUFFIX}")
@@ -108,6 +125,7 @@ def session_dump_paths(directory):
     paths = {}
     for path in Path(directory).glob("full-*.json"):
         paths[logical_path(path)] = path
-    for path in Path(directory).glob(f"full-*.json{COMPRESSED_SUFFIX}"):
-        paths.setdefault(logical_path(path), path)
+    for suffix in COMPRESSED_SUFFIXES:
+        for path in Path(directory).glob(f"full-*.json{suffix}"):
+            paths.setdefault(logical_path(path), path)
     return [paths[key] for key in sorted(paths)]

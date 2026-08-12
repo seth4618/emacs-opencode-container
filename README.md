@@ -242,9 +242,10 @@ directory by `dev-up.sh`, mounted read-only in the container, and added to the
 common shell `PATH`.
 
 Session dumps larger than 45 MiB are automatically replaced by quality-11
-Brotli files named `<dump>.bt`.  The dump listing, Markdown converter, and
-bootstrap generator accept either the original `.json` name or its `.json.bt`
+Brotli files named `<dump>.br`.  The dump listing, Markdown converter, and
+bootstrap generator accept either the original `.json` name or its `.json.br`
 form and transparently stream or temporarily decompress it as appropriate.
+Legacy `.json.bt` files produced by an earlier version are accepted too.
 
 ## Script inventory
 

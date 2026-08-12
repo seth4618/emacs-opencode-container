@@ -9,7 +9,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from session_files import compress_if_large, open_session_text, session_dump_paths
+from session_files import compress_if_large, logical_path, open_session_text, session_dump_paths
 
 
 def run_command(cmd):
@@ -150,7 +150,7 @@ def load_dump_metadata(sessions_dir):
 
         if not session_id:
             # Fall back to the filename when the payload is missing an id.
-            session_id = dump_path.name.removeprefix("full-").removesuffix(".bt").removesuffix(".json")
+            session_id = logical_path(dump_path).stem.removeprefix("full-")
 
         dump = {
             "id": session_id,
