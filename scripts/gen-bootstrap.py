@@ -8,18 +8,21 @@ import os
 import re
 from pprint import pprint
 
+from session_files import logical_path, materialized_session, resolve_session_path
+
 def main():
     if len(sys.argv) < 2:
         print("Usage: python generate_bootstrap.py <path_to_full_session.json>")
         sys.exit(1)
 
-    json_path = os.path.abspath(sys.argv[1])
-    if not os.path.exists(json_path):
+    json_path = resolve_session_path(os.path.abspath(sys.argv[1]))
+    if not json_path.exists():
         print(f"Error: File not found at {json_path}")
         sys.exit(1)
 
-    base_name = os.path.basename(json_path)
-    dir_name = os.path.dirname(json_path)
+    logical_json_path = logical_path(json_path)
+    base_name = logical_json_path.name
+    dir_name = str(logical_json_path.parent)
     
     session_id_match = re.search(r"full-(.+)\.json", base_name)
     session_id = session_id_match.group(1) if session_id_match else os.path.splitext(base_name)[0]
@@ -43,22 +46,22 @@ def main():
     print(f"Launching OpenCode pipeline and attaching {base_name}...")
 
     # Native attachment call using the -f flag
-    cmd = ["opencode", "run", instruction,
-           "--file", json_path,
-           "--model", "openai/gpt-5.5",
-           "--variant", "high"
-           ]
-    pprint(cmd)
-    
     try:
-        with open("/tmp/opencode.errs", "w") as err_log:
-            result = subprocess.run(
-                cmd,
-                stdin=subprocess.DEVNULL, # Tell OpenCode it's a headless execution
-                stdout=subprocess.PIPE,
-                stderr=err_log,
-                text=True
-            )
+        with materialized_session(json_path) as attachment_path:
+            cmd = ["opencode", "run", instruction,
+                   "--file", str(attachment_path),
+                   "--model", "openai/gpt-5.5",
+                   "--variant", "high"
+                   ]
+            pprint(cmd)
+            with open("/tmp/opencode.errs", "w") as err_log:
+                result = subprocess.run(
+                    cmd,
+                    stdin=subprocess.DEVNULL, # Tell OpenCode it's a headless execution
+                    stdout=subprocess.PIPE,
+                    stderr=err_log,
+                    text=True
+                )
         
         response_text = result.stdout
 

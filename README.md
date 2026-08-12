@@ -227,6 +227,7 @@ Later files win. Only files ending in `.env` under `/secrets` are sourced; non-`
   - `.local/bin/gen-bootstrap.py`
   - `.local/bin/dump-session.py`
   - `.local/bin/dump2md.py`
+  - `.local/bin/session_files.py` (shared transparent Brotli support)
 - symlink:
   - `.emacs.d/repo-emacs.d` -> `/workspace/<repo>/emacs.d`
 - local override stubs (if missing):
@@ -239,6 +240,11 @@ Emacs Customize writes to `~/.emacs.d/init.local.el` (`custom-file`), keeping re
 The commands under `.local/bin` are refreshed from this toolkit's `scripts/`
 directory by `dev-up.sh`, mounted read-only in the container, and added to the
 common shell `PATH`.
+
+Session dumps larger than 45 MiB are automatically replaced by quality-11
+Brotli files named `<dump>.bt`.  The dump listing, Markdown converter, and
+bootstrap generator accept either the original `.json` name or its `.json.bt`
+form and transparently stream or temporarily decompress it as appropriate.
 
 ## Script inventory
 

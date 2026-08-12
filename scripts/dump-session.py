@@ -9,9 +9,8 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+from session_files import compress_if_large, open_session_text, session_dump_paths
 
-# The filename pattern used for complete exported session dumps.
-DUMP_GLOB = "full-*.json"
 
 def run_command(cmd):
     """Helper function to run a shell command and return stdout."""
@@ -137,9 +136,9 @@ def load_dump_metadata(sessions_dir):
     if not sessions_dir.exists():
         return dumps, dumps_by_id
 
-    for dump_path in sorted(sessions_dir.glob(DUMP_GLOB)):
+    for dump_path in session_dump_paths(sessions_dir):
         try:
-            with dump_path.open("r", encoding="utf-8") as handle:
+            with open_session_text(dump_path) as handle:
                 payload = json.load(handle)
         except (OSError, json.JSONDecodeError) as exc:
             print(f"Warning: Skipping unreadable dump {dump_path}: {exc}", file=sys.stderr)
@@ -151,7 +150,7 @@ def load_dump_metadata(sessions_dir):
 
         if not session_id:
             # Fall back to the filename when the payload is missing an id.
-            session_id = dump_path.stem.removeprefix("full-")
+            session_id = dump_path.name.removeprefix("full-").removesuffix(".bt").removesuffix(".json")
 
         dump = {
             "id": session_id,
@@ -257,7 +256,8 @@ def export_session(session_id, sessions_dir):
         sessions_dir.mkdir(parents=True, exist_ok=True)
         with filename.open("w", encoding="utf-8") as handle:
             subprocess.run(cmd_export, stdout=handle, check=True)
-        print(f"Success! Full session saved to {filename}")
+        saved_path = compress_if_large(filename)
+        print(f"Success! Full session saved to {saved_path}")
     except (subprocess.CalledProcessError, IOError) as exc:
         print(f"Failed to export full session {session_id}: {exc}", file=sys.stderr)
         sys.exit(1)

@@ -85,6 +85,7 @@ install_file "$TEMPLATE_ROOT/.emacs.d/early-init.el" "$TARGET_HOME/.emacs.d/earl
 install_command "$SCRIPT_DIR/gen-bootstrap.py" "$TARGET_HOME/.local/bin/gen-bootstrap.py"
 install_command "$SCRIPT_DIR/dump-session.py" "$TARGET_HOME/.local/bin/dump-session.py"
 install_command "$SCRIPT_DIR/dump2md.py" "$TARGET_HOME/.local/bin/dump2md.py"
+install_file "$SCRIPT_DIR/session_files.py" "$TARGET_HOME/.local/bin/session_files.py"
 
 ensure_local_file "$TARGET_HOME/.bashrc.local"
 ensure_local_file "$TARGET_HOME/.emacs.d/init.local.el"

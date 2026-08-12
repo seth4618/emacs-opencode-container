@@ -6,6 +6,8 @@ import sys
 import json
 from datetime import datetime
 
+from session_files import open_session_text
+
 def format_timestamp(ts_value):
     """Converts unix timestamp in milliseconds to mm/dd/yy hh:mm."""
     if not ts_value:
@@ -17,7 +19,7 @@ def format_timestamp(ts_value):
         return str(ts_value)
 
 def parse_opencode_dump(file_path):
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open_session_text(file_path) as f:
         data = json.load(f)
         
     info = data.get("info", {})
