@@ -117,3 +117,7 @@ ENV
 
 run_compose up -d --build "$@"
 record_container_baseline
+
+# Repeat any freshness warning after the noisy Compose build so it remains
+# visible in the final output. Fresh images produce no output here.
+warn_if_selected_image_stale "${EOC_BASE_IMAGE:-eoc-base-container:latest}"

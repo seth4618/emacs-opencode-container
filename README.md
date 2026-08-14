@@ -210,7 +210,8 @@ Before building the project image, `dev-up.sh` warns when a toolkit-managed
 base or template image predates its source Dockerfile. It also warns when a
 template image predates its rebuilt parent base image, and prints the relevant
 `cdev build-base` or `cdev build-image <template>` command. The warning does not
-interrupt `cdev up`.
+interrupt `cdev up`, and is repeated after the Compose build so it is not lost
+in the build output.
 
 Secrets are materialized into `<repo>/.devcontainer/.runtime/secrets` as real files/directories during `dev-up.sh` (not host-path symlinks), then mounted at `/secrets` in the container. Re-run `dev-up.sh` after changing `secrets-paths.txt` entries or secret file contents.
 

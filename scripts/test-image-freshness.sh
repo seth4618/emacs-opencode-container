@@ -47,4 +47,7 @@ output="$( {
   } 2>&1 )"
 [[ -z "$output" ]]
 
+warning_call_count="$(grep -c 'warn_if_selected_image_stale' "$REPO_ROOT/scripts/dev-up.sh")"
+[[ "$warning_call_count" -eq 2 ]]
+
 echo "PASS: stale toolkit image warnings are actionable"

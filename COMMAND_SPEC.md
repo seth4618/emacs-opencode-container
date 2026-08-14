@@ -105,7 +105,8 @@ Before the project build, warn without exiting when a toolkit-managed base or
 template image is older than its corresponding toolkit Dockerfile. Also warn
 when a selected template image is older than the base image it inherits, and
 print the appropriate `cdev build-base` and/or `cdev build-image <template>`
-recovery commands.
+recovery commands. Repeat any warning after the Compose build completes so it
+remains visible at the end of the command output.
 
 #### Exit conditions
 - `0` on success.
