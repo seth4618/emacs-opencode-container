@@ -130,6 +130,64 @@ run_compose() {
   (cd "$REPO_ROOT" && "${COMPOSE_CMD[@]}" "${compose_file_args[@]}" "${runtime_env_args[@]}" "$@")
 }
 
+image_created_epoch() {
+  local image="$1" created
+  created="$(docker image inspect "$image" --format '{{.Created}}' 2>/dev/null || true)"
+  [[ -n "$created" ]] || return 1
+  date -d "$created" +%s
+}
+
+warn_if_selected_image_stale() {
+  local selected_image="$1" base_image="eoc-base-container:latest"
+  local base_epoch selected_epoch source_epoch template_name template_file stale=0
+
+  # Only toolkit-managed images have a source chain we can determine here.
+  if [[ "$selected_image" != "$base_image" \
+        && ! "$selected_image" =~ ^eoc-(.+)-container:latest$ ]]; then
+    return
+  fi
+
+  if ! base_epoch="$(image_created_epoch "$base_image")"; then
+    echo "Warning: $selected_image depends on missing image $base_image." >&2
+    echo "Run: cdev build-base" >&2
+    return
+  fi
+
+  source_epoch="$(stat -c %Y "$TOOL_HOME/Dockerfile")"
+  if (( base_epoch < source_epoch )); then
+    echo "Warning: $base_image is older than $TOOL_HOME/Dockerfile." >&2
+    echo "Run: cdev build-base" >&2
+    stale=1
+  fi
+
+  if [[ "$selected_image" == "$base_image" ]]; then
+    return
+  fi
+
+  template_name="${selected_image#eoc-}"
+  template_name="${template_name%-container:latest}"
+  template_file="$TOOL_HOME/docker-templates/${template_name}.docker"
+  [[ -f "$template_file" ]] || return
+  if ! selected_epoch="$(image_created_epoch "$selected_image")"; then
+    echo "Warning: selected image $selected_image is missing." >&2
+    echo "Run: cdev build-image $template_name" >&2
+    return
+  fi
+
+  source_epoch="$(stat -c %Y "$template_file")"
+  if (( selected_epoch < source_epoch )); then
+    echo "Warning: $selected_image is older than $template_file." >&2
+    stale=1
+  fi
+  if (( selected_epoch < base_epoch )); then
+    echo "Warning: $selected_image is older than its parent $base_image." >&2
+    stale=1
+  fi
+  if (( stale )); then
+    echo "Run: cdev build-image $template_name" >&2
+  fi
+}
+
 ensure_running() {
   local cid
   cid="$(run_compose ps -q "$SERVICE_NAME")"

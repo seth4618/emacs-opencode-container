@@ -206,6 +206,12 @@ When you run `dev-up.sh`, it:
 9. Runs Docker Compose using this repository's root `docker-compose.yml`, automatically merges the repo's optional `<repo>/.devcontainer/compose.override.yml`, and uses the repo's `<repo>/.devcontainer/Dockerfile`.
 10. Records a runtime-only fingerprint of the container build/configuration inputs and configured secret sources so `dev-resume.sh` can warn about drift later.
 
+Before building the project image, `dev-up.sh` warns when a toolkit-managed
+base or template image predates its source Dockerfile. It also warns when a
+template image predates its rebuilt parent base image, and prints the relevant
+`cdev build-base` or `cdev build-image <template>` command. The warning does not
+interrupt `cdev up`.
+
 Secrets are materialized into `<repo>/.devcontainer/.runtime/secrets` as real files/directories during `dev-up.sh` (not host-path symlinks), then mounted at `/secrets` in the container. Re-run `dev-up.sh` after changing `secrets-paths.txt` entries or secret file contents.
 
 Runtime wrappers (`run-opencode.sh`, `start-terminal-emacs.sh`, `start-gui-emacs.sh`, and `enter-shell.sh`) source `/usr/local/bin/load-runtime-env` in-container. The load order is:
