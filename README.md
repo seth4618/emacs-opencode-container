@@ -206,6 +206,13 @@ When you run `dev-up.sh`, it:
 9. Runs Docker Compose using this repository's root `docker-compose.yml`, automatically merges the repo's optional `<repo>/.devcontainer/compose.override.yml`, and uses the repo's `<repo>/.devcontainer/Dockerfile`.
 10. Records a runtime-only fingerprint of the container build/configuration inputs and configured secret sources so `dev-resume.sh` can warn about drift later.
 
+Before building the project image, `dev-up.sh` warns when a toolkit-managed
+base or template image predates its source Dockerfile. It also warns when a
+template image predates its rebuilt parent base image, and prints the relevant
+`cdev build-base` or `cdev build-image <template>` command. The warning does not
+interrupt `cdev up`, and is repeated after the Compose build so it is not lost
+in the build output.
+
 Secrets are materialized into `<repo>/.devcontainer/.runtime/secrets` as real files/directories during `dev-up.sh` (not host-path symlinks), then mounted at `/secrets` in the container. Re-run `dev-up.sh` after changing `secrets-paths.txt` entries or secret file contents.
 
 Runtime wrappers (`run-opencode.sh`, `start-terminal-emacs.sh`, `start-gui-emacs.sh`, and `enter-shell.sh`) source `/usr/local/bin/load-runtime-env` in-container. The load order is:
@@ -227,6 +234,7 @@ Later files win. Only files ending in `.env` under `/secrets` are sourced; non-`
   - `.local/bin/gen-bootstrap.py`
   - `.local/bin/dump-session.py`
   - `.local/bin/dump2md.py`
+  - `.local/bin/session_files.py` (shared transparent Brotli support)
 - symlink:
   - `.emacs.d/repo-emacs.d` -> `/workspace/<repo>/emacs.d`
 - local override stubs (if missing):
@@ -239,6 +247,12 @@ Emacs Customize writes to `~/.emacs.d/init.local.el` (`custom-file`), keeping re
 The commands under `.local/bin` are refreshed from this toolkit's `scripts/`
 directory by `dev-up.sh`, mounted read-only in the container, and added to the
 common shell `PATH`.
+
+Session dumps larger than 45 MiB are automatically replaced by quality-11
+Brotli files named `<dump>.br`.  The dump listing, Markdown converter, and
+bootstrap generator accept either the original `.json` name or its `.json.br`
+form and transparently stream or temporarily decompress it as appropriate.
+Legacy `.json.bt` files produced by an earlier version are accepted too.
 
 ## Script inventory
 

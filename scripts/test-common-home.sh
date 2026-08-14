@@ -45,6 +45,7 @@ assert_file_equals "$TARGET_HOME/.emacs.d/early-init.el" "$REPO_ROOT/home-templa
 assert_file_equals "$TARGET_HOME/.local/bin/gen-bootstrap.py" "$REPO_ROOT/scripts/gen-bootstrap.py"
 assert_file_equals "$TARGET_HOME/.local/bin/dump-session.py" "$REPO_ROOT/scripts/dump-session.py"
 assert_file_equals "$TARGET_HOME/.local/bin/dump2md.py" "$REPO_ROOT/scripts/dump2md.py"
+assert_file_equals "$TARGET_HOME/.local/bin/session_files.py" "$REPO_ROOT/scripts/session_files.py"
 assert_link "$TARGET_HOME/.emacs.d/repo-emacs.d" "/workspace/test-repo/emacs.d"
 
 for command_path in \

@@ -27,6 +27,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     emacs-pgtk \
     fonts-dejavu \
     build-essential \
+    brotli \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 

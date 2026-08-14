@@ -26,6 +26,8 @@ fi
 # shellcheck disable=SC1090
 source "$PROJECT_ENV_FILE"
 
+warn_if_selected_image_stale "${EOC_BASE_IMAGE:-eoc-base-container:latest}"
+
 SECRETS_LIST_FILE="${SECRETS_PATHS_FILE:-$REPO_ROOT/secrets-paths.txt}"
 
 : "${HOST_REPO_PATH:=$REPO_ROOT}"
@@ -115,3 +117,7 @@ ENV
 
 run_compose up -d --build "$@"
 record_container_baseline
+
+# Repeat any freshness warning after the noisy Compose build so it remains
+# visible in the final output. Fresh images produce no output here.
+warn_if_selected_image_stale "${EOC_BASE_IMAGE:-eoc-base-container:latest}"
