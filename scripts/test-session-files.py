@@ -18,6 +18,8 @@ import lzma
 import pathlib
 import sys
 
+if '--quality' in sys.argv or '--output' in sys.argv:
+    sys.exit('value options must use --option=value syntax')
 parser = argparse.ArgumentParser()
 parser.add_argument('--decompress', action='store_true')
 parser.add_argument('--stdout', action='store_true')

@@ -110,7 +110,12 @@ def compress_if_large(path, threshold=COMPRESSION_THRESHOLD):
     temporary = Path(f"{compressed}.tmp")
     try:
         subprocess.run(
-            ["brotli", "--quality", "11", "--output", str(temporary), str(path)],
+            [
+                "brotli",
+                "--quality=11",
+                f"--output={temporary}",
+                str(path),
+            ],
             check=True,
         )
         os.replace(temporary, compressed)
