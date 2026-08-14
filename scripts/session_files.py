@@ -12,7 +12,7 @@ from pathlib import Path
 # because early versions of these helpers documented and produced that suffix.
 COMPRESSED_SUFFIX = ".br"
 COMPRESSED_SUFFIXES = (COMPRESSED_SUFFIX, ".bt")
-COMPRESSION_THRESHOLD = 45 * 1024 * 1024
+COMPRESSION_THRESHOLD = 10 * 1024 * 1024
 
 
 def logical_path(path):
