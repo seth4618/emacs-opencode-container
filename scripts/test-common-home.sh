@@ -40,6 +40,7 @@ assert_file_equals() {
 }
 
 assert_file_equals "$TARGET_HOME/.bashrc" "$REPO_ROOT/home-template/.bashrc"
+assert_file_equals "$TARGET_HOME/.gitconfig" "$REPO_ROOT/home-template/.gitconfig"
 assert_file_equals "$TARGET_HOME/.emacs.d/init.el" "$REPO_ROOT/home-template/.emacs.d/init.el"
 assert_file_equals "$TARGET_HOME/.emacs.d/early-init.el" "$REPO_ROOT/home-template/.emacs.d/early-init.el"
 assert_file_equals "$TARGET_HOME/.local/bin/gen-bootstrap.py" "$REPO_ROOT/scripts/gen-bootstrap.py"
@@ -60,6 +61,22 @@ done
 
 if [[ ! -f "$TARGET_HOME/.bashrc.local" ]]; then
   echo "FAIL: expected $TARGET_HOME/.bashrc.local to exist" >&2
+  exit 1
+fi
+
+if [[ ! -f "$TARGET_HOME/.gitconfig.local" ]]; then
+  echo "FAIL: expected $TARGET_HOME/.gitconfig.local to exist" >&2
+  exit 1
+fi
+
+printf '[user]\n\tname = Existing User\n' > "$TARGET_HOME/.gitconfig.local"
+"$REPO_ROOT/scripts/setup-common-home.sh" "$TARGET_HOME" "/workspace/test-repo" >/dev/null
+if ! grep -q 'name = Existing User' "$TARGET_HOME/.gitconfig.local"; then
+  echo "FAIL: setup overwrote $TARGET_HOME/.gitconfig.local" >&2
+  exit 1
+fi
+if [[ "$(HOME="$TARGET_HOME" git config --global --includes --get user.name)" != "Existing User" ]]; then
+  echo "FAIL: .gitconfig did not include .gitconfig.local" >&2
   exit 1
 fi
 

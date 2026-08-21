@@ -229,6 +229,7 @@ Later files win. Only files ending in `.env` under `/secrets` are sourced; non-`
 
 - copied files:
   - `.bashrc`
+  - `.gitconfig` (includes the user-managed `.gitconfig.local`)
   - `.emacs.d/init.el`
   - `.emacs.d/early-init.el`
   - `.local/bin/gen-bootstrap.py`
@@ -239,10 +240,45 @@ Later files win. Only files ending in `.env` under `/secrets` are sourced; non-`
   - `.emacs.d/repo-emacs.d` -> `/workspace/<repo>/emacs.d`
 - local override stubs (if missing):
   - `.bashrc.local`
+  - `.gitconfig.local`
   - `.emacs.d/init.local.el`
   - `.emacs.d/early-init.local.el`
 
 Emacs Customize writes to `~/.emacs.d/init.local.el` (`custom-file`), keeping repo-managed defaults unchanged.
+
+### Git author identity
+
+Use the common home's `.gitconfig.local` for the Git author name and email instead
+of exporting values from `.bashrc`. Git reads this configuration in interactive
+shells, wrapper commands, Emacs, and other processes, while `setup-common-home.sh`
+leaves the user-managed file unchanged on later refreshes.
+
+For the default common-home location, configure the identity on the host:
+
+```sh
+# Reuse the complete host Git configuration:
+cp "$HOME/.gitconfig" "$HOME/.opencode-common-home/.gitconfig.local"
+
+# Or configure only the author identity:
+git config --file "$HOME/.opencode-common-home/.gitconfig.local" user.name "Ada Lovelace"
+git config --file "$HOME/.opencode-common-home/.gitconfig.local" user.email "ada@example.com"
+
+scripts/dev-up.sh
+scripts/dev-shell.sh git config --get-regexp '^user\.(name|email)$'
+```
+
+Copy to `.gitconfig.local`, not `.gitconfig`: `setup-common-home.sh` refreshes
+the managed `.gitconfig`, whose only purpose is to include the local file. A
+copied Git configuration can contain complete sections such as `[user]`,
+`[init]`, and `[credential]`; it does not need to contain only identity values.
+Note that `credential.helper = store` saves credentials unencrypted in
+`~/.git-credentials`, and copying `.gitconfig` does not copy that separate
+credentials file.
+
+Replace the path if `HOST_COMMON_HOME` is set to a different location. Rerun
+`scripts/dev-up.sh` after the first configuration so Compose creates the new
+mounts. Subsequent edits to `.gitconfig.local` are visible in the running
+container immediately.
 
 The commands under `.local/bin` are refreshed from this toolkit's `scripts/`
 directory by `dev-up.sh`, mounted read-only in the container, and added to the
