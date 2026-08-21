@@ -80,6 +80,7 @@ link_item() {
 }
 
 install_file "$TEMPLATE_ROOT/.bashrc" "$TARGET_HOME/.bashrc"
+install_file "$TEMPLATE_ROOT/.gitconfig" "$TARGET_HOME/.gitconfig"
 install_file "$TEMPLATE_ROOT/.emacs.d/init.el" "$TARGET_HOME/.emacs.d/init.el"
 install_file "$TEMPLATE_ROOT/.emacs.d/early-init.el" "$TARGET_HOME/.emacs.d/early-init.el"
 install_command "$SCRIPT_DIR/gen-bootstrap.py" "$TARGET_HOME/.local/bin/gen-bootstrap.py"
@@ -88,6 +89,7 @@ install_command "$SCRIPT_DIR/dump2md.py" "$TARGET_HOME/.local/bin/dump2md.py"
 install_file "$SCRIPT_DIR/session_files.py" "$TARGET_HOME/.local/bin/session_files.py"
 
 ensure_local_file "$TARGET_HOME/.bashrc.local"
+ensure_local_file "$TARGET_HOME/.gitconfig.local"
 ensure_local_file "$TARGET_HOME/.emacs.d/init.local.el"
 ensure_local_file "$TARGET_HOME/.emacs.d/early-init.local.el"
 
@@ -99,5 +101,6 @@ echo "Common home ready at: $TARGET_HOME"
 echo "repo-emacs.d points to: $repo_emacs_target"
 echo "You can add personal overrides in:"
 echo "  $TARGET_HOME/.bashrc.local"
+echo "  $TARGET_HOME/.gitconfig.local"
 echo "  $TARGET_HOME/.emacs.d/init.local.el"
 echo "  $TARGET_HOME/.emacs.d/early-init.local.el"

@@ -1,0 +1,4 @@
+# Common Git configuration for emacs-opencode-container.
+# Put user-specific settings such as user.name and user.email in the local file.
+[include]
+	path = .gitconfig.local

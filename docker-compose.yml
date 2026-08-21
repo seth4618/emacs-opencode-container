@@ -74,6 +74,13 @@ services:
         source: ${HOST_COMMON_HOME}/.bashrc.local
         target: /home/${CONTAINER_USER:-dev}/.bashrc.local
       - type: bind
+        source: ${HOST_COMMON_HOME}/.gitconfig
+        target: /home/${CONTAINER_USER:-dev}/.gitconfig
+        read_only: true
+      - type: bind
+        source: ${HOST_COMMON_HOME}/.gitconfig.local
+        target: /home/${CONTAINER_USER:-dev}/.gitconfig.local
+      - type: bind
         source: ${HOST_COMMON_HOME}/.local/bin
         target: /home/${CONTAINER_USER:-dev}/.local/bin
         read_only: true
