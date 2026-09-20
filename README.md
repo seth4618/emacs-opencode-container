@@ -284,11 +284,18 @@ The commands under `.local/bin` are refreshed from this toolkit's `scripts/`
 directory by `dev-up.sh`, mounted read-only in the container, and added to the
 common shell `PATH`.
 
-Session dumps larger than 45 MiB are automatically replaced by quality-11
+Session dumps larger than 10 MiB are automatically replaced by quality-11
 Brotli files named `<dump>.br`.  The dump listing, Markdown converter, and
 bootstrap generator accept either the original `.json` name or its `.json.br`
 form and transparently stream or temporarily decompress it as appropriate.
 Legacy `.json.bt` files produced by an earlier version are accepted too.
+
+Run `scripts/check-session-file.py <session.json>` to reconcile an uncompressed
+session with its `.json.br` sibling. It removes the JSON when both contain the
+same bytes; when they differ, it leaves both originals in place, writes the
+decompressed sibling to `compressed-temp.json`, and displays `diff` output. If
+there is no compressed sibling, files larger than `COMPRESSION_THRESHOLD` are
+compressed and the original JSON is removed.
 
 ## Script inventory
 
