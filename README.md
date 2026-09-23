@@ -388,6 +388,13 @@ When validating another repo that uses this toolkit, run the equivalent `dev-sta
 - The target repo is currently mounted read/write at `/workspace/<repo-name>`.
 - `git push origin` is blocked in-container by `/usr/local/bin/git`; push from the host if needed.
 - `dev-up.sh` uses network access when `sync-elisp-helpers.sh` clones or pulls `https://codeberg.org/sczi/opencode.el.git` and `https://github.com/manzaltu/claude-code-ide.el.git`.
+- Helper updates are non-interactive and time out after 30 seconds by default.
+  When an existing checkout cannot be updated, the build warns and uses that
+  checkout instead of hanging or failing. An initial clone still must succeed.
+  Set `ELISP_SYNC_TIMEOUT_SECONDS` to change the limit, or
+  `ELISP_SYNC_STRICT=1` to make update failures fatal. For an image build that
+  intentionally performs no helper network access, set
+  `EOC_SKIP_ELISP_SYNC=1`.
 - The shared base image is tagged `eoc-base-container:latest` and includes the OpenCode and Claude Code npm packages. Layered template images are tagged `eoc-<template>-container:latest`; use `dev-build-image.sh <base|template-name>` or rerun `dev-init.sh <base|template-name>` after toolkit Dockerfile/template changes to refresh them. The base image includes an OCI revision label so you can inspect which toolkit commit produced it.
 
 ## Claude Code subscription login and Emacs usage
