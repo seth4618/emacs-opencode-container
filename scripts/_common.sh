@@ -154,8 +154,11 @@ warn_if_selected_image_stale() {
     return
   fi
 
+  # Compute the maximum mtime without an early-exiting pipeline consumer.
+  # `sort | head` can make sort receive SIGPIPE under `set -o pipefail`, which
+  # aborts dev-up with status 141 when emacs.d contains enough files.
   source_epoch="$(find "$TOOL_HOME/Dockerfile" "$TOOL_HOME/emacs.d" -type f -printf '%T@\n' \
-    | sort -nr | head -n1 | cut -d. -f1)"
+    | awk '$1 > newest { newest = $1 } END { print int(newest) }')"
   if (( base_epoch < source_epoch )); then
     echo "Warning: $base_image is older than its toolkit Dockerfile/Emacs configuration." >&2
     echo "Run: cdev build-base" >&2
