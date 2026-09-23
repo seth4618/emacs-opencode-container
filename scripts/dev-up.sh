@@ -18,7 +18,10 @@ if (( ${#missing_init_files[@]} > 0 )); then
 fi
 
 echo "Syncing elisp helpers..."
-if ! "$(dirname "$0")/sync-elisp-helpers.sh"; then
+# Image builds refresh existing helper checkouts. `dev-up` only needs to ensure
+# they exist; pulling again here adds a redundant network dependency and can
+# delay every container start when a helper host is unavailable.
+if ! ELISP_SYNC_UPDATE=0 "$(dirname "$0")/sync-elisp-helpers.sh"; then
   echo "sync-elisp-helpers.sh failed; aborting dev-up." >&2
   exit 1
 fi

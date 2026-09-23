@@ -21,6 +21,10 @@ exit 124
 TIMEOUT
 chmod +x "$TMP_DIR/bin/timeout"
 
+output="$(PATH="$TMP_DIR/bin:$PATH" ELISP_SYNC_UPDATE=0 \
+  "$TOOL_COPY/scripts/sync-elisp-helpers.sh" 2>&1)"
+[[ "$output" == *"updates disabled"* ]]
+
 output="$(PATH="$TMP_DIR/bin:$PATH" "$TOOL_COPY/scripts/sync-elisp-helpers.sh" 2>&1)"
 [[ "$output" == *"using the existing checkout"* ]]
 
@@ -37,5 +41,7 @@ if PATH="$TMP_DIR/bin:$PATH" "$TOOL_COPY/scripts/sync-elisp-helpers.sh" \
   exit 1
 fi
 [[ ! -e "$TOOL_COPY/.devcontainer/elisp-helpers/claude-code-ide.el" ]]
+
+grep -q 'ELISP_SYNC_UPDATE=0.*sync-elisp-helpers.sh' "$REPO_ROOT/scripts/dev-up.sh"
 
 echo "PASS: elisp helper sync timeouts use existing checkouts safely"

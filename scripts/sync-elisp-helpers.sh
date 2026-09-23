@@ -24,8 +24,12 @@ sync_checkout() {
   local target_dir="$1" remote_url="$2"
 
   if [[ -d "$target_dir/.git" ]]; then
+    if [[ "${ELISP_SYNC_UPDATE:-1}" == "0" ]]; then
+      echo "Using existing $target_dir (updates disabled)"
+      return
+    fi
     echo "Updating $target_dir"
-    if ! GIT_TERMINAL_PROMPT=0 timeout --foreground "$ELISP_SYNC_TIMEOUT_SECONDS" \
+    if ! GIT_TERMINAL_PROMPT=0 timeout --foreground --kill-after=5s "$ELISP_SYNC_TIMEOUT_SECONDS" \
       git -c credential.interactive=never -C "$target_dir" pull --ff-only; then
       if [[ "${ELISP_SYNC_STRICT:-0}" == "1" ]]; then
         echo "error: failed to update $target_dir" >&2
@@ -42,7 +46,7 @@ sync_checkout() {
   fi
 
   echo "Cloning $remote_url into $target_dir"
-  if ! GIT_TERMINAL_PROMPT=0 timeout --foreground "$ELISP_SYNC_TIMEOUT_SECONDS" \
+  if ! GIT_TERMINAL_PROMPT=0 timeout --foreground --kill-after=5s "$ELISP_SYNC_TIMEOUT_SECONDS" \
     git -c credential.interactive=never clone "$remote_url" "$target_dir"; then
     rm -rf "$target_dir"
     echo "error: failed to clone $remote_url" >&2

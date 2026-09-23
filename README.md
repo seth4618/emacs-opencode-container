@@ -395,6 +395,10 @@ When validating another repo that uses this toolkit, run the equivalent `dev-sta
   `ELISP_SYNC_STRICT=1` to make update failures fatal. For an image build that
   intentionally performs no helper network access, set
   `EOC_SKIP_ELISP_SYNC=1`.
+- `cdev up` does not pull helper repositories when valid checkouts already
+  exist. It only clones a missing helper; refreshes belong to
+  `cdev build-image`, where the helper is actually copied into an image. This
+  keeps ordinary container starts independent of Codeberg and GitHub uptime.
 - The shared base image is tagged `eoc-base-container:latest` and includes the OpenCode and Claude Code npm packages. Layered template images are tagged `eoc-<template>-container:latest`; use `dev-build-image.sh <base|template-name>` or rerun `dev-init.sh <base|template-name>` after toolkit Dockerfile/template changes to refresh them. The base image includes an OCI revision label so you can inspect which toolkit commit produced it.
 
 ## Claude Code subscription login and Emacs usage
