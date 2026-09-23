@@ -7,7 +7,7 @@
 (unless package-archive-contents
   (package-refresh-contents))
 
-(dolist (pkg '(use-package lsp-mode lsp-pyright magit gptel typescript-mode json-mode solidity-mode company yasnippet markdown-mode plz plz-media-type plz-event-source))
+(dolist (pkg '(use-package lsp-mode lsp-pyright magit gptel typescript-mode json-mode solidity-mode company yasnippet markdown-mode plz plz-media-type plz-event-source transient websocket vterm))
   (unless (package-installed-p pkg)
     (package-install pkg)))
 
@@ -79,6 +79,25 @@
 
 (use-package magit :commands magit-status)
 (use-package gptel :commands gptel)
+
+;; claude-code-ide.el provides a native Emacs interface to the Claude Code CLI,
+;; including project-aware terminals, diffs, file context, and its command menu.
+(let* ((container-claude-code-ide-dir "/opt/elisp-helpers/claude-code-ide.el")
+       (repo-claude-code-ide-dir
+        (expand-file-name ".devcontainer/elisp-helpers/claude-code-ide.el"
+                          (file-name-directory (directory-file-name default-directory))))
+       (claude-code-ide-dir
+        (cond
+         ((file-directory-p container-claude-code-ide-dir)
+          container-claude-code-ide-dir)
+         ((file-directory-p repo-claude-code-ide-dir)
+          repo-claude-code-ide-dir)
+         (t nil))))
+  (when claude-code-ide-dir
+    (add-to-list 'load-path claude-code-ide-dir)
+    (require 'claude-code-ide)
+    (claude-code-ide-emacs-tools-setup)
+    (global-set-key (kbd "C-c C-'") #'claude-code-ide-menu)))
 
 ;; Load opencode.el following README.org Manual installation pattern:
 ;;   (add-to-list 'load-path "/path/to/opencode.el")

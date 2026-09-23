@@ -8,6 +8,8 @@ TARGET_DIR="$HELPERS_DIR/opencode.el"
 LEGACY_HELPERS_DIR="$REPO_ROOT/elisp-helpers"
 LEGACY_TARGET_DIR="$LEGACY_HELPERS_DIR/opencode.el"
 REMOTE_URL="https://codeberg.org/sczi/opencode.el.git"
+CLAUDE_CODE_IDE_TARGET_DIR="$HELPERS_DIR/claude-code-ide.el"
+CLAUDE_CODE_IDE_REMOTE_URL="https://github.com/manzaltu/claude-code-ide.el.git"
 
 mkdir -p "$HELPERS_DIR"
 
@@ -27,4 +29,16 @@ else
   fi
   echo "Cloning $REMOTE_URL into $TARGET_DIR"
   git clone "$REMOTE_URL" "$TARGET_DIR"
+fi
+
+if [[ -d "$CLAUDE_CODE_IDE_TARGET_DIR/.git" ]]; then
+  echo "Updating $CLAUDE_CODE_IDE_TARGET_DIR"
+  git -C "$CLAUDE_CODE_IDE_TARGET_DIR" pull --ff-only
+else
+  if [[ -e "$CLAUDE_CODE_IDE_TARGET_DIR" ]]; then
+    echo "error: $CLAUDE_CODE_IDE_TARGET_DIR exists but is not a git repo" >&2
+    exit 1
+  fi
+  echo "Cloning $CLAUDE_CODE_IDE_REMOTE_URL into $CLAUDE_CODE_IDE_TARGET_DIR"
+  git clone "$CLAUDE_CODE_IDE_REMOTE_URL" "$CLAUDE_CODE_IDE_TARGET_DIR"
 fi
