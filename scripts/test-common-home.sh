@@ -49,6 +49,11 @@ assert_file_equals "$TARGET_HOME/.local/bin/dump2md.py" "$REPO_ROOT/scripts/dump
 assert_file_equals "$TARGET_HOME/.local/bin/session_files.py" "$REPO_ROOT/scripts/session_files.py"
 assert_link "$TARGET_HOME/.emacs.d/repo-emacs.d" "/workspace/test-repo/emacs.d"
 
+# Production containers load the toolkit configuration copied into the image,
+# rather than assuming every target project has its own emacs.d directory.
+"$REPO_ROOT/scripts/setup-common-home.sh" "$TARGET_HOME" "/opt" >/dev/null
+assert_link "$TARGET_HOME/.emacs.d/repo-emacs.d" "/opt/emacs.d"
+
 for command_path in \
   "$TARGET_HOME/.local/bin/gen-bootstrap.py" \
   "$TARGET_HOME/.local/bin/dump-session.py" \

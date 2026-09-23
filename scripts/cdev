@@ -18,6 +18,7 @@ Primary commands:
   emacs [--terminal|--gui]
                         Start Emacs in the container
   opencode              Run OpenCode in the container
+  claude [args...]      Run Claude Code in the container
 
 Utility commands:
   bootstrap-opencode    Seed shared OpenCode/common-home defaults
@@ -36,7 +37,7 @@ fi
 
 case "$command_name" in
   help|-h|--help) usage ;;
-  init|up|stop|resume|down|status|shell|emacs|opencode)
+  init|up|stop|resume|down|status|shell|emacs|opencode|claude)
     exec "$SCRIPT_DIR/dev-${command_name}.sh" "$@"
     ;;
   bootstrap-opencode)

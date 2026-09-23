@@ -1,4 +1,4 @@
-# Emacs + OpenCode Dev Container (`cdev`)
+# Emacs + OpenCode + Claude Code Dev Container (`cdev`)
 
 This repository is a **centralized dev-container toolkit**, not a single application. Put the `scripts/` directory on your `PATH`, then run the `cdev` command from any git repository you want to develop in. The individual `dev-*.sh` scripts remain available as transparent, directly editable entrypoints; `cdev` is a thin subcommand dispatcher over them.
 
@@ -12,6 +12,7 @@ The current runtime model is:
 - **Repo-local runtime**: generated env, copied secrets, and OpenCode state under `<repo>/.devcontainer/.runtime`.
 - **Project image layer**: an editable, committed `<repo>/.devcontainer/Dockerfile` built on the shared `eoc-base-container:latest` image.
 - **Shared OpenCode auth/config**: optional host mounts for `/opencode-share` and `/opencode-config`, separate from repo-local runtime state.
+- **Claude Code**: installed in the base image, with its configuration and subscription login persisted through a host directory mounted at `/claude-config`.
 
 > Note: an earlier design used `/src-host` plus a named Docker volume workspace and import/export scripts. That design is no longer the active implementation.
 
@@ -146,10 +147,11 @@ cdev emacs --terminal
 cdev emacs --gui
 ```
 
-6. Run OpenCode:
+6. Run OpenCode or Claude Code:
 
 ```bash
 cdev opencode
+cdev claude
 ```
 
 Copy the template when configuring repo-specific OpenCode provider settings:
@@ -197,7 +199,7 @@ When you run `dev-up.sh`, it:
 
 1. Resolves the target git repo root (`git rev-parse --show-toplevel`).
 2. Verifies that `dev-init.sh <base|template-name>` has already created the required `.devcontainer` files; if not, it prints the missing paths and exits.
-3. Syncs the external `.devcontainer/elisp-helpers/opencode.el` helper checkout by running `sync-elisp-helpers.sh`.
+3. Syncs the external `.devcontainer/elisp-helpers/opencode.el` and `.devcontainer/elisp-helpers/claude-code-ide.el` checkouts by running `sync-elisp-helpers.sh`.
 4. Loads `<repo>/.devcontainer/.env`.
 5. Bootstraps common home via `setup-common-home.sh`.
 6. Creates host cache, OpenCode, SSH, and repo-local runtime directories as needed.
@@ -215,7 +217,7 @@ in the build output.
 
 Secrets are materialized into `<repo>/.devcontainer/.runtime/secrets` as real files/directories during `dev-up.sh` (not host-path symlinks), then mounted at `/secrets` in the container. Re-run `dev-up.sh` after changing `secrets-paths.txt` entries or secret file contents.
 
-Runtime wrappers (`run-opencode.sh`, `start-terminal-emacs.sh`, `start-gui-emacs.sh`, and `enter-shell.sh`) source `/usr/local/bin/load-runtime-env` in-container. The load order is:
+Runtime wrappers (`run-opencode.sh`, `run-claude.sh`, `start-terminal-emacs.sh`, `start-gui-emacs.sh`, and `enter-shell.sh`) source `/usr/local/bin/load-runtime-env` in-container. The load order is:
 
 1. `/secrets/*.env`
 2. `~/.opencode-common.env`
@@ -237,7 +239,8 @@ Later files win. Only files ending in `.env` under `/secrets` are sourced; non-`
   - `.local/bin/dump2md.py`
   - `.local/bin/session_files.py` (shared transparent Brotli support)
 - symlink:
-  - `.emacs.d/repo-emacs.d` -> `/workspace/<repo>/emacs.d`
+  - `.emacs.d/repo-emacs.d` -> `/opt/emacs.d` (the toolkit-managed Emacs
+    configuration copied into the base image)
 - local override stubs (if missing):
   - `.bashrc.local`
   - `.gitconfig.local`
@@ -311,6 +314,7 @@ There is no `src/` directory in the current repository. The shell scripts under 
 - `dev-shell.sh`: open an interactive shell in the running container, automatically using `dev-resume.sh` if needed.
 - `dev-emacs.sh`: launch Emacs in terminal or GUI mode.
 - `dev-opencode.sh`: run OpenCode in container context.
+- `dev-claude.sh`: run Claude Code in container context, forwarding any CLI arguments.
 - `dev-status.sh`: print resolved repo/context paths and Docker Compose status.
 - `dev-down.sh`: stop and remove the container and Compose network for the current repo context.
 - `dev-bootstrap-opencode.sh`: seed shared OpenCode/common-home defaults without overwriting existing values.
@@ -330,7 +334,7 @@ There is no `src/` directory in the current repository. The shell scripts under 
 - `new-disposable-branch.sh`: helper workflow for quick disposable branches.
 - `setup-common-home.sh`: manage shared `HOST_COMMON_HOME` template files.
 - `test-common-home.sh`: validate common-home bootstrap behavior.
-- `sync-elisp-helpers.sh`: clone/update the external `.devcontainer/elisp-helpers/opencode.el` helper checkout used by the base image build.
+- `sync-elisp-helpers.sh`: clone/update the external `opencode.el` and `claude-code-ide.el` helper checkouts under `.devcontainer/elisp-helpers/` for the base image build.
 
 ### In-container entry wrappers
 
@@ -338,6 +342,7 @@ These scripts are copied or invoked as the container-side behavior behind the ho
 
 - `enter-shell.sh`
 - `run-opencode.sh`
+- `run-claude.sh`
 - `start-gui-emacs.sh`
 - `start-terminal-emacs.sh`
 
@@ -382,8 +387,91 @@ When validating another repo that uses this toolkit, run the equivalent `dev-sta
 - This is a Linux-focused workflow.
 - The target repo is currently mounted read/write at `/workspace/<repo-name>`.
 - `git push origin` is blocked in-container by `/usr/local/bin/git`; push from the host if needed.
-- `dev-up.sh` uses network access when `sync-elisp-helpers.sh` clones or pulls `https://codeberg.org/sczi/opencode.el.git`.
-- The shared base image is tagged `eoc-base-container:latest` and includes the OpenCode npm package. Layered template images are tagged `eoc-<template>-container:latest`; use `dev-build-image.sh <base|template-name>` or rerun `dev-init.sh <base|template-name>` after toolkit Dockerfile/template changes to refresh them. The base image includes an OCI revision label so you can inspect which toolkit commit produced it.
+- `dev-up.sh` uses network access when `sync-elisp-helpers.sh` clones or pulls `https://codeberg.org/sczi/opencode.el.git` and `https://github.com/manzaltu/claude-code-ide.el.git`.
+- Helper updates are non-interactive and time out after 30 seconds by default.
+  When an existing checkout cannot be updated, the build warns and uses that
+  checkout instead of hanging or failing. An initial clone still must succeed.
+  Set `ELISP_SYNC_TIMEOUT_SECONDS` to change the limit, or
+  `ELISP_SYNC_STRICT=1` to make update failures fatal. For an image build that
+  intentionally performs no helper network access, set
+  `EOC_SKIP_ELISP_SYNC=1`.
+- `cdev up` does not pull helper repositories when valid checkouts already
+  exist. It only clones a missing helper; refreshes belong to
+  `cdev build-image`, where the helper is actually copied into an image. This
+  keeps ordinary container starts independent of Codeberg and GitHub uptime.
+- The shared base image is tagged `eoc-base-container:latest` and includes the OpenCode and Claude Code npm packages. Layered template images are tagged `eoc-<template>-container:latest`; use `dev-build-image.sh <base|template-name>` or rerun `dev-init.sh <base|template-name>` after toolkit Dockerfile/template changes to refresh them. The base image includes an OCI revision label so you can inspect which toolkit commit produced it.
+
+## Claude Code subscription login and Emacs usage
+
+The base image installs Anthropic's `@anthropic-ai/claude-code` CLI. Rebuild the
+selected image and recreate the project container after pulling this change:
+
+```bash
+cdev build-image base        # or: cdev build-image <template-name>
+cdev up
+```
+
+Claude Code stores its user configuration in `CLAUDE_CONFIG_DIR`. This toolkit
+sets that variable to `/claude-config` and bind-mounts
+`HOST_CLAUDE_CONFIG_DIR` there. The host directory defaults to `~/.claude`; set
+an absolute alternative in the project's `.devcontainer/.env` when desired:
+
+```dotenv
+HOST_CLAUDE_CONFIG_DIR=/home/you/.claude
+```
+
+Authenticate interactively from the container, then follow the browser login
+flow and select the Claude subscription account:
+
+```bash
+cdev claude
+# At the Claude Code prompt, enter: /login
+```
+
+The resulting login survives container rebuilds because it is written to the
+host-mounted config directory. Keep that directory private and never commit
+its contents. For a Claude Pro subscription, use this interactive login rather
+than setting `ANTHROPIC_API_KEY`: an API key uses Anthropic API billing rather
+than the subscription allowance.
+
+The base image also includes
+[`claude-code-ide.el`](https://github.com/manzaltu/claude-code-ide.el) and the
+native-module build dependencies for its recommended `vterm` backend. Emacs
+installs the package's `transient`, `websocket`, and `vterm` dependencies,
+loads the integration, and registers its Emacs tools automatically.
+
+Within containerized Emacs, type `C-c C-'` (Control-c, Control-apostrophe) to
+open `claude-code-ide-menu`. Use that menu to start or resume a Claude Code
+session for the current project and to access its context, prompt, and session
+commands. The equivalent command is `M-x claude-code-ide-menu`. The integration
+and `cdev claude` use the same `CLAUDE_CONFIG_DIR` login. The plain CLI remains
+available from `M-x vterm`, `M-x shell`, or `M-x term` if desired.
+
+`claude-code-ide.el` is an upstream-managed checkout refreshed by
+`sync-elisp-helpers.sh`; do not edit its generated checkout in
+`.devcontainer/elisp-helpers/`. Rebuild the selected image after updating it so
+the copy under `/opt/elisp-helpers/claude-code-ide.el` is refreshed.
+
+If `M-x claude-code-ide-menu` reports no match, inspect the common-home link:
+
+```bash
+readlink ~/.emacs.d/repo-emacs.d
+test -f ~/.emacs.d/repo-emacs.d/init.el
+```
+
+It must resolve to `/opt/emacs.d`, which is present in current base images.
+A link to `/workspace/<project>/emacs.d` came from an older bootstrap and will
+silently prevent the toolkit configuration from loading when that project has
+no `emacs.d` directory. From the host, rebuild the selected image and run
+`cdev up`; this refreshes both the image copy and the common-home link. There is
+no need to delete the project's `.devcontainer/Dockerfile`.
+
+The common home persists ELPA package metadata between containers. If MELPA has
+removed a package artifact named by cached metadata, Emacs may initially report
+a URL such as `vterm-<version>.tar, Not found`. The package bootstrap now treats
+an install error as potentially stale metadata, refreshes all configured
+archives once, and retries the failed installation. A genuine error after that
+retry is still reported rather than hidden.
 
 ## OpenCode model defaults
 
@@ -522,4 +610,4 @@ Remove that port mapping when OAuth setup is complete if you do not want the cal
 - GUI Emacs depends on host Wayland socket permissions and may need per-host adjustments.
 - OpenCode OAuth is usually easier to bootstrap on the host first, then share auth/config with the container.
 - The repo checkout is currently bind-mounted read/write, so this toolkit does not provide the older read-only-host plus explicit import/export isolation model.
-- `dev-up.sh` updates the external `opencode.el` helper checkout, so container rebuilds can pull unrelated upstream helper changes.
+- `dev-up.sh` updates the external `opencode.el` and `claude-code-ide.el` helper checkouts, so container rebuilds can pull unrelated upstream helper changes.

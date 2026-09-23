@@ -12,6 +12,7 @@ sample/solidity/node_modules/
 
 # cloned elisp helper repos
 .devcontainer/elisp-helpers/opencode.el/
+.devcontainer/elisp-helpers/claude-code-ide.el/
 
 # opencode generated backups
 *~
@@ -19,3 +20,6 @@ sample/solidity/node_modules/
 # generated per-repo devcontainer runtime state
 .devcontainer/.env
 .devcontainer/.runtime/
+
+# python ignores
+__pycache__

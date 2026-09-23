@@ -85,6 +85,7 @@ container_input_fingerprint() {
   {
     fingerprint_path "$TOOL_HOME/docker-compose.yml"
     fingerprint_path "$TOOL_HOME/Dockerfile"
+    fingerprint_path "$TOOL_HOME/emacs.d"
     fingerprint_path "$TOOL_HOME/docker-templates"
     fingerprint_path "$PROJECT_DOTDIR/Dockerfile"
     fingerprint_path "$PROJECT_COMPOSE_OVERRIDE_FILE"
@@ -153,9 +154,13 @@ warn_if_selected_image_stale() {
     return
   fi
 
-  source_epoch="$(stat -c %Y "$TOOL_HOME/Dockerfile")"
+  # Compute the maximum mtime without an early-exiting pipeline consumer.
+  # `sort | head` can make sort receive SIGPIPE under `set -o pipefail`, which
+  # aborts dev-up with status 141 when emacs.d contains enough files.
+  source_epoch="$(find "$TOOL_HOME/Dockerfile" "$TOOL_HOME/emacs.d" -type f -printf '%T@\n' \
+    | awk '$1 > newest { newest = $1 } END { print int(newest) }')"
   if (( base_epoch < source_epoch )); then
-    echo "Warning: $base_image is older than $TOOL_HOME/Dockerfile." >&2
+    echo "Warning: $base_image is older than its toolkit Dockerfile/Emacs configuration." >&2
     echo "Run: cdev build-base" >&2
     stale=1
   fi

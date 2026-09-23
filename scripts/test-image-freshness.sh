@@ -18,6 +18,21 @@ esac
 DOCKER
 chmod +x "$TMP_DIR/docker"
 
+# Exercise enough image-input files to overflow a pipe buffer. The freshness
+# check must not use an early-exiting consumer that sends SIGPIPE upstream.
+LARGE_TOOL_HOME="$TMP_DIR/large-tool-home"
+mkdir -p "$LARGE_TOOL_HOME/emacs.d" "$LARGE_TOOL_HOME/docker-templates"
+touch "$LARGE_TOOL_HOME/Dockerfile" "$LARGE_TOOL_HOME/docker-templates/coding.docker"
+seq 1 10000 | sed "s#^#$LARGE_TOOL_HOME/emacs.d/file-#" | xargs touch
+
+(
+  PATH="$TMP_DIR:$PATH"
+  # shellcheck source=scripts/_common.sh
+  source "$REPO_ROOT/scripts/_common.sh"
+  TOOL_HOME="$LARGE_TOOL_HOME"
+  warn_if_selected_image_stale "eoc-base-container:latest" >/dev/null
+)
+
 output="$( {
   PATH="$TMP_DIR:$PATH"
   # shellcheck source=scripts/_common.sh
@@ -36,7 +51,7 @@ output="$( {
   source "$REPO_ROOT/scripts/_common.sh"
   warn_if_selected_image_stale "eoc-base-container:latest"
   } 2>&1 )"
-[[ "$output" == *"eoc-base-container:latest is older than"* ]]
+[[ "$output" == *"eoc-base-container:latest is older than its toolkit Dockerfile/Emacs configuration"* ]]
 [[ "$output" == *"Run: cdev build-base"* ]]
 
 output="$( {

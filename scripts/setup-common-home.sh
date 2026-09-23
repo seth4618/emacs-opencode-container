@@ -16,7 +16,8 @@ Creates a common home directory from repo-managed templates.
 Arguments:
   TARGET_HOME          Optional destination path.
                        Default: \$OPENCODE_COMMON_HOME or \$HOME/.opencode-common-home
-  CONTAINER_REPO_ROOT  Optional in-container repo path for .emacs.d/repo-emacs.d.
+  CONTAINER_REPO_ROOT  Optional in-container parent of the toolkit emacs.d
+                       used for .emacs.d/repo-emacs.d.
                        Default: \$CONTAINER_REPO_ROOT or \$HOST_REPO_PATH
 USAGE
 }

@@ -3,11 +3,12 @@ FROM ubuntu:24.04
 ARG DEBIAN_FRONTEND=noninteractive
 ARG EOC_TOOLKIT_REV=unknown
 ARG OPENCODE_NPM_PACKAGE=opencode-ai
+ARG CLAUDE_CODE_NPM_PACKAGE=@anthropic-ai/claude-code
 ARG NVM_VERSION=v0.40.3
 ARG NODE_VERSION=lts/*
 
 LABEL org.opencontainers.image.title="eoc-base-container" \
-      org.opencontainers.image.description="Base image for Emacs/OpenCode dev containers" \
+      org.opencontainers.image.description="Base image for Emacs, OpenCode, and Claude Code dev containers" \
       org.opencontainers.image.revision="${EOC_TOOLKIT_REV}"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -28,6 +29,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     fonts-dejavu \
     build-essential \
     brotli \
+    cmake \
+    libtool-bin \
+    libvterm-dev \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
@@ -41,18 +45,21 @@ RUN mkdir -p "$NVM_DIR" \
     && installed_node="$(nvm current)" \
     && nvm alias default "$installed_node" \
     && ln -sfn "$NVM_DIR/versions/node/${installed_node}" "$NVM_DIR/current" \
-    && npm install -g "$OPENCODE_NPM_PACKAGE" \
+    && npm install -g "$OPENCODE_NPM_PACKAGE" "$CLAUDE_CODE_NPM_PACKAGE" \
     && npm cache clean --force \
     && node --version \
     && npm --version \
-    && opencode --version
+    && opencode --version \
+    && claude --version
 
 COPY docker/entrypoint.sh /usr/local/bin/container-entrypoint
 COPY docker/load-runtime-env.sh /usr/local/bin/load-runtime-env
 COPY docker/git-safe /usr/local/bin/git
 COPY .devcontainer/elisp-helpers/opencode.el /opt/elisp-helpers/opencode.el
+COPY .devcontainer/elisp-helpers/claude-code-ide.el /opt/elisp-helpers/claude-code-ide.el
+COPY emacs.d /opt/emacs.d
 RUN chmod +x /usr/local/bin/container-entrypoint /usr/local/bin/load-runtime-env /usr/local/bin/git \
-    && chmod -R a+rX /opt/elisp-helpers
+    && chmod -R a+rX /opt/elisp-helpers /opt/emacs.d
 
 WORKDIR /workspace
 

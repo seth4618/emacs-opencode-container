@@ -32,6 +32,7 @@ services:
       OPENCODE_HOME: /workspace/${WORKSPACE_DIRNAME}/.devcontainer/.runtime/opencode-state
       OPENCODE_CONFIG_DIR: /opencode-config
       OPENCODE_AUTH_DIR: /opencode-share
+      CLAUDE_CONFIG_DIR: /claude-config
       OPENCODE_STATE_DIR: /workspace/${WORKSPACE_DIRNAME}/.devcontainer/.runtime/opencode-state
       XDG_DATA_HOME: /workspace/${WORKSPACE_DIRNAME}/.devcontainer/.runtime/opencode-state
       XDG_STATE_HOME: /workspace/${WORKSPACE_DIRNAME}/.devcontainer/.runtime/opencode-state
@@ -64,6 +65,9 @@ services:
       - type: bind
         source: ${HOST_OPENCODE_CONFIG_DIR}
         target: /opencode-config
+      - type: bind
+        source: ${HOST_CLAUDE_CONFIG_DIR}
+        target: /claude-config
       - type: bind
         source: ${HOST_COMMON_HOME}/.emacs.d
         target: /home/${CONTAINER_USER:-dev}/.emacs.d

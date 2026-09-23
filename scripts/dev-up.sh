@@ -18,7 +18,10 @@ if (( ${#missing_init_files[@]} > 0 )); then
 fi
 
 echo "Syncing elisp helpers..."
-if ! "$(dirname "$0")/sync-elisp-helpers.sh"; then
+# Image builds refresh existing helper checkouts. `dev-up` only needs to ensure
+# they exist; pulling again here adds a redundant network dependency and can
+# delay every container start when a helper host is unavailable.
+if ! ELISP_SYNC_UPDATE=0 "$(dirname "$0")/sync-elisp-helpers.sh"; then
   echo "sync-elisp-helpers.sh failed; aborting dev-up." >&2
   exit 1
 fi
@@ -39,6 +42,7 @@ HOST_HOME="${HOST_HOME:-$HOME}"
 HOST_OPENCODE_SHARE_DIR_SET="${HOST_OPENCODE_SHARE_DIR:-}"
 HOST_OPENCODE_SHARE_DIR="${HOST_OPENCODE_SHARE_DIR:-$HOST_HOME/.local/share/opencode}"
 HOST_OPENCODE_CONFIG_DIR="${HOST_OPENCODE_CONFIG_DIR:-$HOST_HOME/.config/opencode}"
+HOST_CLAUDE_CONFIG_DIR="${HOST_CLAUDE_CONFIG_DIR:-$HOST_HOME/.claude}"
 PROJECT_OPENCODE_STATE_DIR="$PROJECT_DOTDIR/.runtime/opencode-state"
 HOST_CACHE_DIR="${HOST_CACHE_DIR:-$HOST_HOME/.cache}"
 HOST_NPM_CACHE_DIR="${HOST_NPM_CACHE_DIR:-$HOST_HOME/.npm}"
@@ -63,12 +67,15 @@ if [[ -z "${OPENCODE_MODEL:-}" ]]; then
   fi
 fi
 
-mkdir -p "$HOST_OPENCODE_SHARE_DIR" "$HOST_OPENCODE_CONFIG_DIR" "$PROJECT_OPENCODE_STATE_DIR" "$HOST_CACHE_DIR" "$HOST_NPM_CACHE_DIR" "$HOST_PNPM_STORE_DIR" "$HOST_PNPM_HOME_DIR" "$HOST_PIP_CACHE_DIR" "$PROJECT_RUNTIME_DIR/secrets"
+mkdir -p "$HOST_OPENCODE_SHARE_DIR" "$HOST_OPENCODE_CONFIG_DIR" "$HOST_CLAUDE_CONFIG_DIR" "$PROJECT_OPENCODE_STATE_DIR" "$HOST_CACHE_DIR" "$HOST_NPM_CACHE_DIR" "$HOST_PNPM_STORE_DIR" "$HOST_PNPM_HOME_DIR" "$HOST_PIP_CACHE_DIR" "$PROJECT_RUNTIME_DIR/secrets"
 if [[ ! -d "$HOST_SSH_DIR" ]]; then
   mkdir -p "$HOST_SSH_DIR"
   chmod 700 "$HOST_SSH_DIR"
 fi
-"$TOOL_HOME/scripts/setup-common-home.sh" "$HOST_COMMON_HOME" "/workspace/$WORKSPACE_DIRNAME" >/dev/null
+# The common-home entrypoint must load the toolkit-managed Emacs configuration,
+# not an emacs.d directory in the target project (which usually does not exist).
+# The base image carries that configuration at /opt/emacs.d.
+"$TOOL_HOME/scripts/setup-common-home.sh" "$HOST_COMMON_HOME" "/opt" >/dev/null
 
 # Keep OpenCode auth in one canonical shared location so host and container use
 # the same OAuth tokens.
@@ -104,6 +111,7 @@ HOST_GIT_COMMON_DIR=$HOST_GIT_COMMON_DIR
 WORKSPACE_DIRNAME=$WORKSPACE_DIRNAME
 HOST_OPENCODE_SHARE_DIR=$HOST_OPENCODE_SHARE_DIR
 HOST_OPENCODE_CONFIG_DIR=$HOST_OPENCODE_CONFIG_DIR
+HOST_CLAUDE_CONFIG_DIR=$HOST_CLAUDE_CONFIG_DIR
 HOST_CACHE_DIR=$HOST_CACHE_DIR
 HOST_NPM_CACHE_DIR=$HOST_NPM_CACHE_DIR
 HOST_PNPM_STORE_DIR=$HOST_PNPM_STORE_DIR
