@@ -239,7 +239,8 @@ Later files win. Only files ending in `.env` under `/secrets` are sourced; non-`
   - `.local/bin/dump2md.py`
   - `.local/bin/session_files.py` (shared transparent Brotli support)
 - symlink:
-  - `.emacs.d/repo-emacs.d` -> `/workspace/<repo>/emacs.d`
+  - `.emacs.d/repo-emacs.d` -> `/opt/emacs.d` (the toolkit-managed Emacs
+    configuration copied into the base image)
 - local override stubs (if missing):
   - `.bashrc.local`
   - `.gitconfig.local`
@@ -439,6 +440,20 @@ available from `M-x vterm`, `M-x shell`, or `M-x term` if desired.
 `sync-elisp-helpers.sh`; do not edit its generated checkout in
 `.devcontainer/elisp-helpers/`. Rebuild the selected image after updating it so
 the copy under `/opt/elisp-helpers/claude-code-ide.el` is refreshed.
+
+If `M-x claude-code-ide-menu` reports no match, inspect the common-home link:
+
+```bash
+readlink ~/.emacs.d/repo-emacs.d
+test -f ~/.emacs.d/repo-emacs.d/init.el
+```
+
+It must resolve to `/opt/emacs.d`, which is present in current base images.
+A link to `/workspace/<project>/emacs.d` came from an older bootstrap and will
+silently prevent the toolkit configuration from loading when that project has
+no `emacs.d` directory. From the host, rebuild the selected image and run
+`cdev up`; this refreshes both the image copy and the common-home link. There is
+no need to delete the project's `.devcontainer/Dockerfile`.
 
 ## OpenCode model defaults
 

@@ -57,8 +57,9 @@ COPY docker/load-runtime-env.sh /usr/local/bin/load-runtime-env
 COPY docker/git-safe /usr/local/bin/git
 COPY .devcontainer/elisp-helpers/opencode.el /opt/elisp-helpers/opencode.el
 COPY .devcontainer/elisp-helpers/claude-code-ide.el /opt/elisp-helpers/claude-code-ide.el
+COPY emacs.d /opt/emacs.d
 RUN chmod +x /usr/local/bin/container-entrypoint /usr/local/bin/load-runtime-env /usr/local/bin/git \
-    && chmod -R a+rX /opt/elisp-helpers
+    && chmod -R a+rX /opt/elisp-helpers /opt/emacs.d
 
 WORKDIR /workspace
 

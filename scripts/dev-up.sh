@@ -69,7 +69,10 @@ if [[ ! -d "$HOST_SSH_DIR" ]]; then
   mkdir -p "$HOST_SSH_DIR"
   chmod 700 "$HOST_SSH_DIR"
 fi
-"$TOOL_HOME/scripts/setup-common-home.sh" "$HOST_COMMON_HOME" "/workspace/$WORKSPACE_DIRNAME" >/dev/null
+# The common-home entrypoint must load the toolkit-managed Emacs configuration,
+# not an emacs.d directory in the target project (which usually does not exist).
+# The base image carries that configuration at /opt/emacs.d.
+"$TOOL_HOME/scripts/setup-common-home.sh" "$HOST_COMMON_HOME" "/opt" >/dev/null
 
 # Keep OpenCode auth in one canonical shared location so host and container use
 # the same OAuth tokens.

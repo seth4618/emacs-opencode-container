@@ -46,7 +46,7 @@ else
 fi
 
 if toolkit_rev="$(git -C "$TOOL_HOME" rev-parse --short=12 HEAD 2>/dev/null)"; then :; else toolkit_rev="unknown"; fi
-if ! git -C "$TOOL_HOME" diff --quiet -- Dockerfile docker/ docker-templates/ .devcontainer/elisp-helpers/ 2>/dev/null; then
+if ! git -C "$TOOL_HOME" diff --quiet -- Dockerfile docker/ docker-templates/ emacs.d/ .devcontainer/elisp-helpers/ 2>/dev/null; then
   toolkit_rev="${toolkit_rev}-dirty"
 fi
 

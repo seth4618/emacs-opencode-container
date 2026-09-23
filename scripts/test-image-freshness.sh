@@ -36,7 +36,7 @@ output="$( {
   source "$REPO_ROOT/scripts/_common.sh"
   warn_if_selected_image_stale "eoc-base-container:latest"
   } 2>&1 )"
-[[ "$output" == *"eoc-base-container:latest is older than"* ]]
+[[ "$output" == *"eoc-base-container:latest is older than its toolkit Dockerfile/Emacs configuration"* ]]
 [[ "$output" == *"Run: cdev build-base"* ]]
 
 output="$( {
