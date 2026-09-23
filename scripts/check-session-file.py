@@ -26,9 +26,11 @@ def check_session_file(session_file, threshold=COMPRESSION_THRESHOLD):
 
     compressed = Path(f"{session_file}.br")
     if not compressed.exists():
+        print("Compressing")
         compress_if_large(session_file, threshold=threshold)
         return 0
 
+    print("Comparing")
     decompressed = session_file.with_name("compressed-temp.json")
     with decompressed.open("wb") as output:
         subprocess.run(
