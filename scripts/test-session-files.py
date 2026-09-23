@@ -2,14 +2,22 @@
 """Regression tests for transparent session dump compression."""
 
 import json
+import importlib.util
 import os
 import stat
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
 
 import session_files
+
+
+CHECK_SCRIPT = Path(__file__).with_name("check-session-file.py")
+CHECK_SPEC = importlib.util.spec_from_file_location("check_session_file", CHECK_SCRIPT)
+check_session_file = importlib.util.module_from_spec(CHECK_SPEC)
+CHECK_SPEC.loader.exec_module(check_session_file)
 
 
 FAKE_BROTLI = """#!/usr/bin/env python3
@@ -85,6 +93,54 @@ class SessionFilesTest(unittest.TestCase):
             session_files.resolve_session_path(self.root / "full-test.json.bt"),
             br_path,
         )
+
+    def test_check_removes_plain_file_when_compressed_copy_matches(self):
+        plain = self.root / "session.json"
+        plain.write_text('{"message": "same"}\n')
+        session_files.compress_if_large(plain, threshold=1)
+        plain.write_text('{"message": "same"}\n')
+
+        self.assertEqual(check_session_file.check_session_file(plain), 0)
+
+        self.assertFalse(plain.exists())
+        self.assertTrue((self.root / "session.json.br").exists())
+        self.assertFalse((self.root / "compressed-temp.json").exists())
+
+    def test_check_keeps_different_files_and_runs_diff(self):
+        plain = self.root / "session.json"
+        plain.write_text('{"message": "compressed"}\n')
+        session_files.compress_if_large(plain, threshold=1)
+        plain.write_text('{"message": "plain"}\n')
+
+        with mock.patch.object(
+            check_session_file.subprocess, "run", wraps=subprocess.run
+        ) as run:
+            self.assertEqual(check_session_file.check_session_file(plain), 1)
+
+        self.assertTrue(plain.exists())
+        self.assertEqual(
+            (self.root / "compressed-temp.json").read_text(),
+            '{"message": "compressed"}\n',
+        )
+        self.assertEqual(run.call_args_list[-1].args[0][0], "diff")
+
+    def test_check_compresses_large_file_without_compressed_sibling(self):
+        plain = self.root / "session.json"
+        plain.write_text('{"message": "large"}\n')
+
+        self.assertEqual(check_session_file.check_session_file(plain, threshold=1), 0)
+
+        self.assertFalse(plain.exists())
+        self.assertTrue((self.root / "session.json.br").exists())
+
+    def test_check_leaves_small_file_without_compressed_sibling(self):
+        plain = self.root / "session.json"
+        plain.write_text("{}")
+
+        self.assertEqual(check_session_file.check_session_file(plain, threshold=2), 0)
+
+        self.assertTrue(plain.exists())
+        self.assertFalse((self.root / "session.json.br").exists())
 
 
 if __name__ == "__main__":
