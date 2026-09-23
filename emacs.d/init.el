@@ -7,9 +7,24 @@
 (unless package-archive-contents
   (package-refresh-contents))
 
-(dolist (pkg '(use-package lsp-mode lsp-pyright magit gptel typescript-mode json-mode solidity-mode company yasnippet markdown-mode plz plz-media-type plz-event-source transient websocket vterm))
+(defvar eoc-package-archives-refreshed-after-error nil
+  "Non-nil after retrying an install with refreshed package metadata.")
+
+(defun eoc-package-install (pkg)
+  "Install PKG, refreshing stale archive metadata once if installation fails."
   (unless (package-installed-p pkg)
-    (package-install pkg)))
+    (condition-case install-error
+        (package-install pkg)
+      (error
+       (if eoc-package-archives-refreshed-after-error
+           (signal (car install-error) (cdr install-error))
+         (setq eoc-package-archives-refreshed-after-error t)
+         (message "Package install failed for %s; refreshing archives and retrying" pkg)
+         (package-refresh-contents)
+         (package-install pkg))))))
+
+(dolist (pkg '(use-package lsp-mode lsp-pyright magit gptel typescript-mode json-mode solidity-mode company yasnippet markdown-mode plz plz-media-type plz-event-source transient websocket vterm))
+  (eoc-package-install pkg))
 
 (eval-when-compile
   (require 'use-package))

@@ -455,6 +455,13 @@ no `emacs.d` directory. From the host, rebuild the selected image and run
 `cdev up`; this refreshes both the image copy and the common-home link. There is
 no need to delete the project's `.devcontainer/Dockerfile`.
 
+The common home persists ELPA package metadata between containers. If MELPA has
+removed a package artifact named by cached metadata, Emacs may initially report
+a URL such as `vterm-<version>.tar, Not found`. The package bootstrap now treats
+an install error as potentially stale metadata, refreshes all configured
+archives once, and retries the failed installation. A genuine error after that
+retry is still reported rather than hidden.
+
 ## OpenCode model defaults
 
 Model default precedence is:
