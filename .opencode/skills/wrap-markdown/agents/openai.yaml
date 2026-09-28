@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wrap Markdown"
+  short_description: "Wrap Markdown files with the repository formatter"
+  default_prompt: "Wrap the requested Markdown file, using the default width unless I provide one."
