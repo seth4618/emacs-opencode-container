@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ripgrep \
     rsync \
     openssh-client \
+    python-is-python3 \
     python3 \
     python3-pip \
     python3-venv \
@@ -35,8 +36,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
+ENV VIRTUAL_ENV=/opt/venv
 ENV NVM_DIR=/usr/local/nvm
-ENV PATH=${NVM_DIR}/current/bin:${PATH}
+ENV PATH=${VIRTUAL_ENV}/bin:${NVM_DIR}/current/bin:${PATH}
+
+# Keep the default Python environment separate from Ubuntu's managed Python.
+# It is writable so the arbitrary host UID used by project containers can run
+# `pip install` without root access or --break-system-packages.
+RUN python3 -m venv "$VIRTUAL_ENV" \
+    && "$VIRTUAL_ENV/bin/pip" install --no-cache-dir pymupdf \
+    && chmod -R a+rwX "$VIRTUAL_ENV"
 
 RUN mkdir -p "$NVM_DIR" \
     && curl -fsSL "https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh" | bash \
