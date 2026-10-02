@@ -215,6 +215,20 @@ template image predates its rebuilt parent base image, and prints the relevant
 interrupt `cdev up`, and is repeated after the Compose build so it is not lost
 in the build output.
 
+To check whether the base image's OpenCode release or any locally installed
+template image is stale without changing images, run:
+
+```bash
+cdev update --check
+```
+
+The check exits with status 1 when an update is available, making it suitable
+for periodic automation. Run `cdev update` without the flag to install the
+latest OpenCode npm release into a rebuilt base image, then rebuild each local
+template image that depends on the old base. Template images that have never
+been built locally are skipped. The updater is organized as artifact-specific
+checks so additional base-image tools can be added later.
+
 Secrets are materialized into `<repo>/.devcontainer/.runtime/secrets` as real files/directories during `dev-up.sh` (not host-path symlinks), then mounted at `/secrets` in the container. Re-run `dev-up.sh` after changing `secrets-paths.txt` entries or secret file contents.
 
 Runtime wrappers (`run-opencode.sh`, `run-claude.sh`, `start-terminal-emacs.sh`, `start-gui-emacs.sh`, and `enter-shell.sh`) source `/usr/local/bin/load-runtime-env` in-container. The load order is:
@@ -308,6 +322,7 @@ There is no `src/` directory in the current repository. The shell scripts under 
 
 - `dev-init.sh`: create `<repo>/.devcontainer` scaffolding, including the repo `.env` template and editable project Dockerfile.
 - `dev-build-base.sh`: build the shared `eoc-base-container:latest` base image from this toolkit checkout.
+- `dev-update.sh`: compare installed artifact versions with upstream releases and rebuild the base plus stale locally installed template images; pass `--check` to report drift without rebuilding.
 - `dev-up.sh`: bootstrap common home, sync helper elisp, ensure the base image exists, generate runtime env/secrets, and build/start the project container.
 - `dev-stop.sh`: stop the project container without removing it, reclaiming its active CPU and RAM while preserving it for a quick resume.
 - `dev-resume.sh`: start an existing stopped container without rebuilding it, warning if tracked container inputs changed; fall back to `dev-up.sh` if no container exists.

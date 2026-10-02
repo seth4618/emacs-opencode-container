@@ -24,6 +24,7 @@ Utility commands:
   bootstrap-opencode    Seed shared OpenCode/common-home defaults
   build-image <name>    Build the base or a template image
   build-base [args...]  Build the shared base image (compatibility command)
+  update [--check]      Check for artifact updates and rebuild stale images
 
 The existing dev-*.sh scripts remain available and are the implementation
 behind these subcommands. Run `cdev help` to show this message.
@@ -48,6 +49,9 @@ case "$command_name" in
     ;;
   build-base)
     exec "$SCRIPT_DIR/dev-build-base.sh" "$@"
+    ;;
+  update)
+    exec "$SCRIPT_DIR/dev-update.sh" "$@"
     ;;
   *)
     echo "Error: unknown command: $command_name" >&2
