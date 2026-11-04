@@ -109,6 +109,7 @@ def compress_if_large(path, threshold=COMPRESSION_THRESHOLD):
     compressed = Path(f"{path}{COMPRESSED_SUFFIX}")
     temporary = Path(f"{compressed}.tmp")
     try:
+        print("Compressing (may take awhile) ...")
         subprocess.run(
             [
                 "brotli",
