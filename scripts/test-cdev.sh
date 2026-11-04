@@ -8,7 +8,7 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 cp "$SCRIPT_DIR/cdev" "$TMP_DIR/cdev"
 chmod +x "$TMP_DIR/cdev"
 
-for command_name in init up stop resume down status shell emacs opencode claude bootstrap-opencode build-image build-base; do
+for command_name in init up stop resume down status shell emacs opencode claude bootstrap-opencode build-image build-base update; do
   cat > "$TMP_DIR/dev-${command_name}.sh" <<'STUB'
 #!/usr/bin/env bash
 printf '%s\n' "$(basename "$0")"
@@ -29,6 +29,9 @@ output="$($TMP_DIR/cdev build-image coding)"
 
 output="$($TMP_DIR/cdev claude --resume)"
 [[ "$output" == $'dev-claude.sh\n<--resume>' ]]
+
+output="$($TMP_DIR/cdev update --check)"
+[[ "$output" == $'dev-update.sh\n<--check>' ]]
 
 $TMP_DIR/cdev help | grep -q 'Usage: cdev <command> \[arguments\]'
 $TMP_DIR/cdev --help | grep -q 'Primary commands:'
